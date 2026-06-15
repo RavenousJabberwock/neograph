@@ -113,7 +113,7 @@ function ExerciseCard({
     <div className="rounded-md border border-border bg-[oklch(0.21_0.03_250)] p-3 space-y-2">
       <div className="flex items-start gap-2">
         <span className="text-[var(--color-amber)] text-[0.7rem] mt-0.5">Q{idx + 1}.</span>
-        <div className="flex-1 text-[0.78rem]"><MarkdownView source={ex.q} /></div>
+        <div className="flex-1 text-[0.78rem]"><MD source={ex.q} /></div>
         {revealed === "ok"   && <Check size={14} className="text-[oklch(0.78_0.18_140)] mt-0.5" />}
         {revealed === "miss" && <XIcon  size={14} className="text-destructive mt-0.5" />}
       </div>
@@ -161,7 +161,7 @@ function ExerciseCard({
       {revealed && (
         <div className="text-[0.72rem] rounded-sm bg-[oklch(0.18_0.03_250)] border border-border p-2">
           <div className="text-[0.58rem] tracking-widest text-[var(--color-amber)] mb-0.5">EXPLANATION</div>
-          <MarkdownView source={ex.explain} />
+          <MD source={ex.explain} />
         </div>
       )}
     </div>
@@ -203,7 +203,7 @@ function LessonView({ lesson, progress, setProgress }: {
         </div>
       </header>
 
-      <section className="prose-md"><MarkdownView source={lesson.body} /></section>
+      <section className="prose-md"><MD source={lesson.body} /></section>
 
       {lesson.exercises.length > 0 && (
         <section className="space-y-2">
