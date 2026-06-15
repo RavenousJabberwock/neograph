@@ -66,7 +66,7 @@ function Workstation() {
                     <Panel defaultSize={62} minSize={25}>
                       <GraphPanel />
                     </Panel>
-                    {(visible.table || visible.cas) && <Separator className="resize-handle horizontal" />}
+                    {(visible.table || visible.cas) && <Separator className="resize-handle vertical" />}
                   </>
                 )}
                 {(visible.table || visible.cas) && (
