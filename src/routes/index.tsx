@@ -21,6 +21,7 @@ import { RadioPanel } from "@/components/calc/RadioPanel";
 import { NotepadPanel } from "@/components/calc/NotepadPanel";
 import { Plot3DPanel } from "@/components/calc/Plot3DPanel";
 import { NumericsPanel } from "@/components/calc/NumericsPanel";
+import { AcademyPanel } from "@/components/calc/AcademyPanel";
 import { RadioProvider } from "@/lib/calc/radio-context";
 import { RadioMiniDock } from "@/components/calc/RadioMiniDock";
 import { HelpDialog } from "@/components/calc/HelpDialog";
@@ -66,6 +67,7 @@ const PANELS: PanelDef[] = [
   { key: "notepad",   title: "NOTEPAD",               accent: "amber",   render: () => <NotepadPanel /> },
   { key: "plot3d",    title: "3D · z = f(x,y)",       accent: "magenta", render: () => <Plot3DPanel /> },
   { key: "numerics",  title: "NUMERICS · ODE / ∫ / ROOT", accent: "cyan", render: () => <NumericsPanel /> },
+  { key: "academy",   title: "ACADEMY · K → POSTGRAD",   accent: "amber",   render: () => <AcademyPanel /> },
 ];
 
 function Index() {

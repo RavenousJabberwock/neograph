@@ -12,13 +12,15 @@
  * ------------------------------------------------------------------
  */
 import { useEffect, useMemo, useState } from "react";
-import { HelpCircle, X, ChevronRight, BookOpen, Keyboard, Sigma, Lightbulb, Link2 } from "lucide-react";
+import { HelpCircle, X, ChevronRight, BookOpen, Keyboard, Sigma, Lightbulb, Link2, GraduationCap } from "lucide-react";
 import { HELP } from "@/lib/calc/help-content";
 import { useCalc, type PanelKey } from "@/lib/calc/store";
+import { findLesson, STAGES } from "@/lib/calc/academy-content";
+import { openAcademyLesson } from "./AcademyPanel";
 
 const ORDER: PanelKey[] = [
   "calc","graph","plot3d","table","cas","numerics","matrix","stats",
-  "gsolve","constants","ide","terminal","notepad","paint","radio","workspace",
+  "gsolve","constants","ide","terminal","notepad","paint","radio","academy","workspace",
 ];
 
 export interface HelpEventDetail { key?: PanelKey }
@@ -104,6 +106,19 @@ export function HelpDialog() {
                 >
                   OPEN {section.title.toUpperCase()}
                 </button>
+                {section.academy && findLesson(section.academy) && (
+                  <button
+                    className="pill-btn !text-[0.6rem]"
+                    onClick={() => {
+                      showPanel("academy");
+                      openAcademyLesson(section.academy!);
+                      setOpen(false);
+                    }}
+                    title="Jump to the matching Academy lesson"
+                  >
+                    <GraduationCap size={10} /> STUDY · {findLesson(section.academy)!.lesson.title.toUpperCase()}
+                  </button>
+                )}
               </div>
             </header>
 
@@ -198,6 +213,32 @@ export function HelpDialog() {
                       {HELP[r].title}
                     </button>
                   ))}
+                </div>
+              </section>
+            )}
+
+            {section.furtherAcademy && section.furtherAcademy.length > 0 && (
+              <section className="space-y-2">
+                <h3 className="text-[0.65rem] tracking-widest text-[var(--color-amber)] flex items-center gap-1.5">
+                  <GraduationCap size={12} /> CONTINUE LEARNING · ACADEMY
+                </h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {section.furtherAcademy.map((id) => {
+                    const hit = findLesson(id); if (!hit) return null;
+                    return (
+                      <button
+                        key={id}
+                        className="pill-btn !text-[0.62rem]"
+                        onClick={() => { showPanel("academy"); openAcademyLesson(id); setOpen(false); }}
+                        title={`${hit.stage.title} · ${hit.stage.band}`}
+                      >
+                        {hit.lesson.title}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="text-[0.6rem] text-muted-foreground">
+                  Full curriculum: {STAGES.length} stages · {STAGES.reduce((n, s) => n + s.lessons.length, 0)} lessons.
                 </div>
               </section>
             )}

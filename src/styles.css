@@ -321,5 +321,42 @@
   .md-view th { background: oklch(0.22 0.03 250); color: var(--color-primary); letter-spacing: 0.05em; text-transform: uppercase; font-size: 0.75em; }
   .md-view input[type="checkbox"] { accent-color: var(--color-primary); margin-right: 0.4em; }
   .md-view img { max-width: 100%; border: 1px solid var(--color-border); border-radius: var(--radius-sm); }
+
+  /* Inline markdown (Academy panel exercise text, explanations) — reuses .md-view styles
+     without the full-block padding/scroll wrapper. */
+  .md-inline { font-family: var(--font-mono); color: var(--color-foreground); }
+  .md-inline p:first-child { margin-top: 0; }
+  .md-inline p:last-child { margin-bottom: 0; }
+  .md-inline h1, .md-inline h2, .md-inline h3, .md-inline h4 {
+    color: var(--color-primary); font-weight: 600; margin: 1em 0 0.4em; line-height: 1.2;
+    text-shadow: 0 0 8px oklch(0.85 0.18 195 / 35%);
+  }
+  .md-inline h1 { font-size: 1.25rem; border-bottom: 1px solid var(--color-border); padding-bottom: 0.3em; }
+  .md-inline h2 { font-size: 1.05rem; color: var(--color-amber); }
+  .md-inline h3 { font-size: 0.95rem; }
+  .md-inline p { margin: 0.45em 0; }
+  .md-inline ul, .md-inline ol { margin: 0.45em 0; padding-left: 1.4em; }
+  .md-inline ul { list-style: square; }
+  .md-inline li::marker { color: var(--color-amber); }
+  .md-inline strong { color: var(--color-foreground); font-weight: 700; }
+  .md-inline em { color: oklch(0.88 0.05 195); }
+  .md-inline code {
+    font-family: var(--font-mono); font-size: 0.85em;
+    background: oklch(0.22 0.03 250); border: 1px solid var(--color-border);
+    border-radius: 4px; padding: 0.05em 0.35em; color: var(--color-amber);
+  }
+  .md-inline pre {
+    background: oklch(0.16 0.03 250); border: 1px solid var(--color-border);
+    border-left: 2px solid var(--color-primary); border-radius: var(--radius-sm);
+    padding: 0.7em 0.9em; margin: 0.6em 0; overflow-x: auto;
+  }
+  .md-inline pre code { background: transparent; border: 0; padding: 0; color: var(--color-foreground); }
+  .md-inline table { border-collapse: collapse; margin: 0.7em 0; width: 100%; font-size: 0.82em; }
+  .md-inline th, .md-inline td { border: 1px solid var(--color-border); padding: 0.3em 0.55em; text-align: left; }
+  .md-inline th { background: oklch(0.22 0.03 250); color: var(--color-primary); font-size: 0.7em; letter-spacing: 0.04em; text-transform: uppercase; }
+  .md-inline blockquote {
+    border-left: 2px solid var(--color-amber); background: oklch(0.2 0.03 250);
+    padding: 0.45em 0.8em; margin: 0.6em 0; color: var(--color-muted-foreground); font-style: italic;
+  }
 }
 

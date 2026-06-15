@@ -37,6 +37,7 @@ export type PanelKey =
   | "calc" | "graph" | "table" | "cas"
   | "ide" | "paint" | "stats" | "matrix" | "gsolve" | "constants"
   | "terminal" | "radio" | "notepad" | "plot3d" | "numerics"
+  | "academy"
   | "workspace";
 
 export interface GraphParams { a: number; b: number; c: number; d: number }
@@ -103,13 +104,14 @@ const DEFAULT_WINDOWS: Record<PanelKey, WinRect> = {
   notepad:   { x: 240, y: 160, w: 520, h: 420, z: 14 },
   plot3d:    { x: 320, y: 100, w: 520, h: 420, z: 15 },
   numerics:  { x: 460, y: 240, w: 460, h: 420, z: 16 },
+  academy:   { x: 120, y:  80, w: 920, h: 580, z: 17 },
   workspace: { x:  20, y: 580, w: 280, h: 360, z: 11 },
 };
 
 const DEFAULT_VISIBLE: Record<PanelKey, boolean> = {
   calc: true, graph: true, table: true, cas: true, workspace: true,
   ide: false, paint: false, stats: false, matrix: false, gsolve: false, constants: false,
-  terminal: false, radio: false, notepad: false, plot3d: false, numerics: false,
+  terminal: false, radio: false, notepad: false, plot3d: false, numerics: false, academy: false,
 };
 
 // ─── Type guards for hydrated state ─────────────────────────────────────────
