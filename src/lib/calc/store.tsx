@@ -1,5 +1,11 @@
 import { createContext, useContext, useState, useCallback, type ReactNode, useRef, useEffect } from "react";
 import { defaultViewport, PLOT_COLORS, type PlotExpr, type Viewport } from "./math";
+import { bindBridge } from "./bridge";
+
+export type WallpaperName = "grid" | "scanlines" | "dots" | "hex" | "plain";
+export type Wallpaper =
+  | { kind: "preset"; name: WallpaperName }
+  | { kind: "image"; url: string; label?: string };
 
 export type PanelKey =
   | "calc" | "graph" | "table" | "cas"
@@ -30,6 +36,8 @@ interface CalcState {
   windows: Record<PanelKey, WinRect>;
   setWindow: (k: PanelKey, patch: Partial<WinRect>) => void;
   focusWindow: (k: PanelKey) => void;
+  wallpaper: Wallpaper;
+  setWallpaper: (w: Wallpaper) => void;
 }
 
 const Ctx = createContext<CalcState | null>(null);
