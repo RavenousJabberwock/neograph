@@ -45,6 +45,10 @@ export interface HelpSection {
   tips?: string[];
   /** Related panel keys for cross-linking. */
   related?: PanelKey[];
+  /** Optional Academy lesson id this panel maps to (deep-link). */
+  academy?: string;
+  /** Optional list of further Academy lessons to suggest. */
+  furtherAcademy?: string[];
 }
 
 // ─── Help registry ─────────────────────────────────────────────────────────
