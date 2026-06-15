@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { Group as PanelGroup, Panel, Separator } from "react-resizable-panels";
 import { CalcProvider, useCalc } from "@/lib/calc/store";
 import { TopBar } from "@/components/calc/TopBar";
 import { WorkspaceSidebar } from "@/components/calc/WorkspaceSidebar";
