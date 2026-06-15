@@ -5,8 +5,9 @@ import {
   FolderOpen, Save, FilePlus2, X, Calculator, LineChart, Table2, Sigma,
   Code2, Paintbrush, BarChart3, Grid3x3, Crosshair, BookOpen, Image as ImageIcon, Camera,
   Terminal as TermIcon, Radio as RadioIcon, NotebookPen, Box, Activity,
+  Download, Upload,
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 const STORAGE_KEY = "lvbl_calc_workspaces_v2";
 
@@ -30,10 +31,27 @@ function saveAll(ws: Record<string, Workspace>) {
 }
 
 export function WorkspaceSidebar() {
-  const { plots, setPlots, viewport, setViewport, visible, toggleVisible, casMode, setCasMode, vintage, setVintage, wallpaper, setWallpaper } = useCalc();
+  const { plots, setPlots, viewport, setViewport, visible, toggleVisible, casMode, setCasMode, vintage, setVintage, wallpaper, setWallpaper, exportState, importState } = useCalc();
   const [workspaces, setWorkspaces] = useState<Record<string, Workspace>>(loadAll());
   const [name, setName] = useState("default");
   const [pickPlot, setPickPlot] = useState<string>("");
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
+  const downloadLayout = () => {
+    const blob = new Blob([exportState()], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `neograph-workspace-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  const uploadLayout = (f: File | undefined) => {
+    if (!f) return;
+    f.text().then((txt) => {
+      const ok = importState(txt);
+      if (!ok) alert("Not a valid neoGraph workspace file.");
+    }).catch((e) => alert(`Read failed: ${e.message}`));
+  };
 
   const presets: { name: WallpaperName; label: string }[] = [
     { name: "grid",      label: "GRID"      },
@@ -135,6 +153,10 @@ export function WorkspaceSidebar() {
         <button className="pill-btn" onClick={newWs}><FilePlus2 size={12} />NEW</button>
         <button className="pill-btn" onClick={save}><Save size={12} />SAVE</button>
         <button className="pill-btn" onClick={() => load(name)}><FolderOpen size={12} />LOAD</button>
+        <button className="pill-btn" onClick={downloadLayout} title="Download workspace JSON"><Download size={12} />JSON</button>
+        <button className="pill-btn" onClick={() => fileRef.current?.click()} title="Import workspace JSON"><Upload size={12} />OPEN</button>
+        <input ref={fileRef} type="file" accept="application/json,.json" className="hidden"
+          onChange={(e) => uploadLayout(e.target.files?.[0])} />
       </div>
 
       <div>
