@@ -183,6 +183,7 @@ export function CalcProvider({ children }: { children: ReactNode }) {
       vintage, setVintage,
       windows, setWindow, focusWindow,
       wallpaper, setWallpaper,
+      graphParams, setGraphParam,
     }}>
       {children}
     </Ctx.Provider>
