@@ -283,7 +283,7 @@ the **rational root theorem** narrows the candidates for higher degrees.`,
   },
 ];
 
-const trig = [
+const trig: Lesson[] = [
   {
     id: "trig-unit-circle",
     title: "The unit circle",
