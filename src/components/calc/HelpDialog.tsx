@@ -106,6 +106,19 @@ export function HelpDialog() {
                 >
                   OPEN {section.title.toUpperCase()}
                 </button>
+                {section.academy && findLesson(section.academy) && (
+                  <button
+                    className="pill-btn !text-[0.6rem]"
+                    onClick={() => {
+                      showPanel("academy");
+                      openAcademyLesson(section.academy!);
+                      setOpen(false);
+                    }}
+                    title="Jump to the matching Academy lesson"
+                  >
+                    <GraduationCap size={10} /> STUDY · {findLesson(section.academy)!.lesson.title.toUpperCase()}
+                  </button>
+                )}
               </div>
             </header>
 
