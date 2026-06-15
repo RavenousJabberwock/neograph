@@ -96,59 +96,53 @@ export function CalculatorPanel() {
   ];
 
   return (
-    <div className="panel">
-      <div className="panel-header">
-        <span className="panel-title-dot" />
-        <span>Calculator</span>
-        <span className="ml-auto text-[0.6rem] tracking-[0.2em] text-muted-foreground">
-          {casMode ? "CAS" : "NUM"}
-        </span>
+    <div className="p-3 flex flex-col gap-3 h-full">
+      <div className="text-[0.55rem] tracking-widest text-muted-foreground text-right">
+        MODE · {casMode ? "CAS" : "NUM"}
       </div>
-      <div className="panel-body p-3 flex flex-col gap-3">
-        <div className="rounded-md border border-border bg-[oklch(0.16_0.03_250)] p-3 shadow-[var(--shadow-inset)]">
-          <div className="max-h-28 overflow-auto text-[0.7rem] text-muted-foreground space-y-0.5 mb-2">
-            {history.slice(-6).map((h, i) => (
-              <div key={i} className="flex items-baseline gap-2">
-                <span className="opacity-60">{">"}</span>
-                <span className="truncate">{h.input}</span>
-                <span className="ml-auto neon-text">= {h.output}</span>
-              </div>
-            ))}
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="neon-text-amber text-sm">▸</span>
-            <input
-              ref={inputRef}
-              value={expression}
-              onChange={(e) => setExpression(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); evaluate(); } }}
-              placeholder="Enter expression"
-              className="flex-1 bg-transparent text-base outline-none text-foreground placeholder:text-muted-foreground"
-              spellCheck={false}
-              autoComplete="off"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-6 gap-1.5">
-          {keys.flat().map((k, i) => (
-            <button
-              key={i}
-              className="calc-key"
-              data-variant={k.variant}
-              onClick={() => {
-                if (k.action) k.action();
-                else if (k.insert !== undefined) ins(k.insert);
-              }}
-            >
-              {k.label === "ENTER" ? (
-                <span className="flex items-center gap-1"><CornerDownLeft size={12} /> RUN</span>
-              ) : k.label === "⌫" ? (
-                <Delete size={14} />
-              ) : k.label}
-            </button>
+      <div className="rounded-md border border-border bg-[oklch(0.16_0.03_250)] p-3 shadow-[var(--shadow-inset)]">
+        <div className="max-h-28 overflow-auto text-[0.7rem] text-muted-foreground space-y-0.5 mb-2">
+          {history.slice(-6).map((h, i) => (
+            <div key={i} className="flex items-baseline gap-2">
+              <span className="opacity-60">{">"}</span>
+              <span className="truncate">{h.input}</span>
+              <span className="ml-auto neon-text">= {h.output}</span>
+            </div>
           ))}
         </div>
+        <div className="flex items-center gap-2">
+          <span className="neon-text-amber text-sm">▸</span>
+          <input
+            ref={inputRef}
+            value={expression}
+            onChange={(e) => setExpression(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); evaluate(); } }}
+            placeholder="Enter expression"
+            className="flex-1 bg-transparent text-base outline-none text-foreground placeholder:text-muted-foreground"
+            spellCheck={false}
+            autoComplete="off"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-6 gap-1.5">
+        {keys.flat().map((k, i) => (
+          <button
+            key={i}
+            className="calc-key"
+            data-variant={k.variant}
+            onClick={() => {
+              if (k.action) k.action();
+              else if (k.insert !== undefined) ins(k.insert);
+            }}
+          >
+            {k.label === "ENTER" ? (
+              <span className="flex items-center gap-1"><CornerDownLeft size={12} /> RUN</span>
+            ) : k.label === "⌫" ? (
+              <Delete size={14} />
+            ) : k.label}
+          </button>
+        ))}
       </div>
     </div>
   );
