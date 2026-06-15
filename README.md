@@ -5,6 +5,8 @@ in the browser. Built on TanStack Start + React 19 + Vite, themed with Tailwind 
 
 > *"Postgrad math in a synthwave window manager."*
 
+Use neoGraph live at https://neograph.lovable.app/
+
 ---
 
 ## ✦ Feature matrix
