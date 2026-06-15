@@ -7,7 +7,7 @@ import { Download, Plus, Trash2, ZoomIn, ZoomOut, Crosshair, Play, Eye, EyeOff }
 interface Hover { x: number; y: number; sx: number; sy: number }
 
 export function GraphPanel() {
-  const { plots, setPlots, addPlot, viewport, setViewport, vintage, setVintage } = useCalc();
+  const { plots, setPlots, addPlot, viewport, setViewport, vintage, setVintage, graphParams, setGraphParam } = useCalc();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [size, setSize] = useState({ w: 600, h: 360 });
@@ -96,63 +96,169 @@ export function GraphPanel() {
     }
 
     // plots
+    const params = graphParams;
     for (const p of plots) {
       if (!p.enabled) continue;
       ctx.strokeStyle = p.color;
+      ctx.fillStyle = p.color;
       ctx.lineWidth = 1.8;
       ctx.shadowColor = p.color;
       ctx.shadowBlur = 6;
-      ctx.beginPath();
       try {
         if (p.kind === "explicit") {
           const compiled = math.compile(p.expr);
           const samples = 600;
           const endI = Math.floor(samples * progress);
+          ctx.beginPath();
           let pen = false;
           for (let i = 0; i <= endI; i++) {
             const x = xMin + ((xMax - xMin) * i) / samples;
             let y: number;
-            try { y = Number(compiled.evaluate({ x })); }
+            try { y = Number(compiled.evaluate({ x, ...params })); }
             catch { pen = false; continue; }
             if (!Number.isFinite(y)) { pen = false; continue; }
             const px = xToPx(x), py = yToPx(y);
             if (!pen) { ctx.moveTo(px, py); pen = true; }
             else ctx.lineTo(px, py);
           }
+          ctx.stroke();
         } else if (p.kind === "parametric") {
           const cx = math.compile(p.expr);
           const cy = math.compile(p.expr2 || "0");
           const tMin = p.tMin ?? 0, tMax = p.tMax ?? Math.PI * 2;
           const samples = 600;
           const endI = Math.floor(samples * progress);
+          ctx.beginPath();
           let pen = false;
           for (let i = 0; i <= endI; i++) {
             const t = tMin + ((tMax - tMin) * i) / samples;
-            const x = Number(cx.evaluate({ t })), y = Number(cy.evaluate({ t }));
+            const x = Number(cx.evaluate({ t, ...params })), y = Number(cy.evaluate({ t, ...params }));
             if (!Number.isFinite(x) || !Number.isFinite(y)) { pen = false; continue; }
             const px = xToPx(x), py = yToPx(y);
             if (!pen) { ctx.moveTo(px, py); pen = true; } else ctx.lineTo(px, py);
           }
+          ctx.stroke();
         } else if (p.kind === "polar") {
           const cr = math.compile(p.expr);
           const tMin = p.tMin ?? 0, tMax = p.tMax ?? Math.PI * 2;
           const samples = 720;
           const endI = Math.floor(samples * progress);
+          ctx.beginPath();
           let pen = false;
           for (let i = 0; i <= endI; i++) {
             const theta = tMin + ((tMax - tMin) * i) / samples;
-            const r = Number(cr.evaluate({ theta, t: theta }));
+            const r = Number(cr.evaluate({ theta, t: theta, ...params }));
             if (!Number.isFinite(r)) { pen = false; continue; }
             const x = r * Math.cos(theta), y = r * Math.sin(theta);
             const px = xToPx(x), py = yToPx(y);
             if (!pen) { ctx.moveTo(px, py); pen = true; } else ctx.lineTo(px, py);
           }
+          ctx.stroke();
+        } else if (p.kind === "implicit") {
+          // Marching squares on f(x,y) = 0
+          const fxy = math.compile(p.expr);
+          const nx = 110, ny = 80;
+          const dx = (xMax - xMin) / nx, dy = (yMax - yMin) / ny;
+          const grid = new Float64Array((nx + 1) * (ny + 1));
+          for (let i = 0; i <= nx; i++) for (let j = 0; j <= ny; j++) {
+            const x = xMin + i * dx, y = yMin + j * dy;
+            let v: number;
+            try { v = Number(fxy.evaluate({ x, y, ...params })); }
+            catch { v = NaN; }
+            grid[i * (ny + 1) + j] = v;
+          }
+          ctx.beginPath();
+          for (let i = 0; i < nx; i++) for (let j = 0; j < ny; j++) {
+            const v00 = grid[i * (ny + 1) + j];
+            const v10 = grid[(i + 1) * (ny + 1) + j];
+            const v11 = grid[(i + 1) * (ny + 1) + (j + 1)];
+            const v01 = grid[i * (ny + 1) + (j + 1)];
+            if (!isFinite(v00) || !isFinite(v10) || !isFinite(v11) || !isFinite(v01)) continue;
+            const x0 = xMin + i * dx, y0 = yMin + j * dy;
+            const x1 = x0 + dx, y1 = y0 + dy;
+            const seg: Array<[number, number]> = [];
+            const lerp = (a: number, b: number, va: number, vb: number) => a + ((0 - va) / (vb - va)) * (b - a);
+            // bottom edge (y0): v00 ↔ v10
+            if ((v00 > 0) !== (v10 > 0)) seg.push([lerp(x0, x1, v00, v10), y0]);
+            // right edge (x1): v10 ↔ v11
+            if ((v10 > 0) !== (v11 > 0)) seg.push([x1, lerp(y0, y1, v10, v11)]);
+            // top edge (y1): v01 ↔ v11
+            if ((v01 > 0) !== (v11 > 0)) seg.push([lerp(x0, x1, v01, v11), y1]);
+            // left edge (x0): v00 ↔ v01
+            if ((v00 > 0) !== (v01 > 0)) seg.push([x0, lerp(y0, y1, v00, v01)]);
+            if (seg.length >= 2) {
+              ctx.moveTo(xToPx(seg[0][0]), yToPx(seg[0][1]));
+              ctx.lineTo(xToPx(seg[1][0]), yToPx(seg[1][1]));
+            }
+            if (seg.length === 4) {
+              ctx.moveTo(xToPx(seg[2][0]), yToPx(seg[2][1]));
+              ctx.lineTo(xToPx(seg[3][0]), yToPx(seg[3][1]));
+            }
+          }
+          ctx.stroke();
+        } else if (p.kind === "slope") {
+          // dy/dx = f(x,y)  → little segments
+          const cf = math.compile(p.expr);
+          const nx = 28, ny = 18;
+          const dx = (xMax - xMin) / nx, dy = (yMax - yMin) / ny;
+          const seglen = Math.min((W / nx), (H / ny)) * 0.35;
+          for (let i = 0; i < nx; i++) for (let j = 0; j < ny; j++) {
+            const x = xMin + (i + 0.5) * dx, y = yMin + (j + 0.5) * dy;
+            let m: number;
+            try { m = Number(cf.evaluate({ x, y, ...params })); }
+            catch { continue; }
+            if (!Number.isFinite(m)) continue;
+            const ang = Math.atan(m);
+            const cx0 = xToPx(x), cy0 = yToPx(y);
+            const dxp = Math.cos(ang) * seglen, dyp = -Math.sin(ang) * seglen;
+            ctx.beginPath();
+            ctx.moveTo(cx0 - dxp / 2, cy0 - dyp / 2);
+            ctx.lineTo(cx0 + dxp / 2, cy0 + dyp / 2);
+            ctx.stroke();
+          }
+        } else if (p.kind === "vector") {
+          // <P(x,y), Q(x,y)> arrows
+          const cP = math.compile(p.expr);
+          const cQ = math.compile(p.expr2 || "0");
+          const nx = 22, ny = 14;
+          const dx = (xMax - xMin) / nx, dy = (yMax - yMin) / ny;
+          const cell = Math.min(W / nx, H / ny) * 0.42;
+          // first pass to find max magnitude
+          let maxMag = 1e-9;
+          const cache: number[] = [];
+          for (let i = 0; i < nx; i++) for (let j = 0; j < ny; j++) {
+            const x = xMin + (i + 0.5) * dx, y = yMin + (j + 0.5) * dy;
+            let px: number, py: number;
+            try { px = Number(cP.evaluate({ x, y, ...params })); py = Number(cQ.evaluate({ x, y, ...params })); }
+            catch { px = NaN; py = NaN; }
+            cache.push(px, py);
+            const m = Math.hypot(px, py);
+            if (Number.isFinite(m) && m > maxMag) maxMag = m;
+          }
+          let k = 0;
+          for (let i = 0; i < nx; i++) for (let j = 0; j < ny; j++) {
+            const px = cache[k++], py = cache[k++];
+            if (!Number.isFinite(px) || !Number.isFinite(py)) continue;
+            const x = xMin + (i + 0.5) * dx, y = yMin + (j + 0.5) * dy;
+            const scale = cell / maxMag;
+            const sx = xToPx(x), sy = yToPx(y);
+            const tx = sx + px * scale, ty = sy - py * scale;
+            ctx.beginPath();
+            ctx.moveTo(sx, sy);
+            ctx.lineTo(tx, ty);
+            // arrowhead
+            const a = Math.atan2(ty - sy, tx - sx);
+            const ah = 4;
+            ctx.lineTo(tx - ah * Math.cos(a - Math.PI / 6), ty - ah * Math.sin(a - Math.PI / 6));
+            ctx.moveTo(tx, ty);
+            ctx.lineTo(tx - ah * Math.cos(a + Math.PI / 6), ty - ah * Math.sin(a + Math.PI / 6));
+            ctx.stroke();
+          }
         }
       } catch { /* invalid expr */ }
-      ctx.stroke();
     }
     ctx.shadowBlur = 0;
-  }, [plots, viewport, size, progress]);
+  }, [plots, viewport, size, progress, graphParams]);
 
   useEffect(() => { draw(); }, [draw]);
 
