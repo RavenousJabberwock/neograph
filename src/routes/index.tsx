@@ -14,14 +14,19 @@ import { StatsPanel } from "@/components/calc/StatsPanel";
 import { MatrixPanel } from "@/components/calc/MatrixPanel";
 import { GSolvePanel } from "@/components/calc/GSolvePanel";
 import { ConstantsPanel } from "@/components/calc/ConstantsPanel";
+import { TerminalPanel } from "@/components/calc/TerminalPanel";
+import { RadioPanel } from "@/components/calc/RadioPanel";
+import { NotepadPanel } from "@/components/calc/NotepadPanel";
+import { Plot3DPanel } from "@/components/calc/Plot3DPanel";
+import { NumericsPanel } from "@/components/calc/NumericsPanel";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Λ-Workstation · Cyberpunk Graphing Calculator" },
-      { name: "description", content: "Cyberpunk multi-window scientific graphing calculator: CAS, Python IDE (Pyodide), Paint, stats/regression, matrix RREF, G-Solve, constants library." },
-      { property: "og:title", content: "Λ-Workstation · Cyberpunk Graphing Calculator" },
-      { property: "og:description", content: "Cyberpunk multi-window scientific graphing calculator: CAS, Python IDE (Pyodide), Paint, stats/regression, matrix RREF, G-Solve, constants library." },
+      { title: "Λ-Workstation · Cyberpunk Programmable Calculator" },
+      { name: "description", content: "Cyberpunk multi-window programmable scientific graphing calculator: CAS, ODE/quadrature/root finders, Python IDE, 3D surfaces, matrix decomp, distributions & hypothesis tests, terminal, internet radio, and a tabbed notepad." },
+      { property: "og:title", content: "Λ-Workstation · Cyberpunk Programmable Calculator" },
+      { property: "og:description", content: "Postgrad-grade scientific workstation in the browser." },
     ],
   }),
   component: Index,
@@ -35,16 +40,21 @@ interface PanelDef {
 }
 
 const PANELS: PanelDef[] = [
-  { key: "calc",      title: "CALCULATOR",          accent: "cyan",    render: () => <CalculatorPanel /> },
-  { key: "graph",     title: "GRAPH · ENGINE",      accent: "cyan",    render: () => <GraphPanel /> },
-  { key: "table",     title: "TABLE · VIEW",        accent: "amber",   render: () => <TablePanel /> },
-  { key: "cas",       title: "CAS · SYMBOLIC",      accent: "magenta", render: () => <CasPanel /> },
-  { key: "ide",       title: "IDE · PYTHON (PYODIDE)", accent: "cyan", render: () => <IdePanel /> },
-  { key: "paint",     title: "PAINT · CANVAS",      accent: "magenta", render: () => <PaintPanel /> },
-  { key: "stats",     title: "STATS · REGRESSION",  accent: "amber",   render: () => <StatsPanel /> },
-  { key: "matrix",    title: "MATRIX · RREF / OPS", accent: "cyan",    render: () => <MatrixPanel /> },
-  { key: "gsolve",    title: "G-SOLVE",             accent: "magenta", render: () => <GSolvePanel /> },
-  { key: "constants", title: "CONSTANTS",           accent: "amber",   render: () => <ConstantsPanel /> },
+  { key: "calc",      title: "CALCULATOR",            accent: "cyan",    render: () => <CalculatorPanel /> },
+  { key: "graph",     title: "GRAPH · ENGINE",        accent: "cyan",    render: () => <GraphPanel /> },
+  { key: "table",     title: "TABLE · VIEW",          accent: "amber",   render: () => <TablePanel /> },
+  { key: "cas",       title: "CAS · SYMBOLIC",        accent: "magenta", render: () => <CasPanel /> },
+  { key: "ide",       title: "IDE · MULTILANG",       accent: "cyan",    render: () => <IdePanel /> },
+  { key: "paint",     title: "PAINT · CANVAS",        accent: "magenta", render: () => <PaintPanel /> },
+  { key: "stats",     title: "STATS · REGRESSION",    accent: "amber",   render: () => <StatsPanel /> },
+  { key: "matrix",    title: "MATRIX · DECOMP",       accent: "cyan",    render: () => <MatrixPanel /> },
+  { key: "gsolve",    title: "G-SOLVE",               accent: "magenta", render: () => <GSolvePanel /> },
+  { key: "constants", title: "CONSTANTS",             accent: "amber",   render: () => <ConstantsPanel /> },
+  { key: "terminal",  title: "TERMINAL · /dev/cyberlab", accent: "cyan", render: () => <TerminalPanel /> },
+  { key: "radio",     title: "RADIO · FOCUS FEEDS",   accent: "amber",   render: () => <RadioPanel /> },
+  { key: "notepad",   title: "NOTEPAD",               accent: "amber",   render: () => <NotepadPanel /> },
+  { key: "plot3d",    title: "3D · z = f(x,y)",       accent: "magenta", render: () => <Plot3DPanel /> },
+  { key: "numerics",  title: "NUMERICS · ODE / ∫ / ROOT", accent: "cyan", render: () => <NumericsPanel /> },
 ];
 
 function Index() {
@@ -84,7 +94,6 @@ function Workstation() {
         {minimized.length > 0 && (
           <div className="absolute bottom-0 left-0 right-0 px-3 py-1.5 flex flex-wrap gap-1.5 border-t border-border bg-[oklch(0.16_0.03_250/85%)] backdrop-blur z-[9999]">
             <span className="text-[0.55rem] tracking-widest text-muted-foreground self-center">DOCK</span>
-            {/* the FloatingWindow itself renders the minimized pill; this dock is just a hint */}
           </div>
         )}
       </div>

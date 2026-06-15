@@ -342,6 +342,18 @@ export function GraphPanel() {
           <button className="pill-btn" onClick={exportPng}><Download size={12} />PNG</button>
         </div>
       </div>
+      <div className="flex items-center gap-1.5 px-2 py-1 border-b border-border text-[0.6rem] tracking-widest text-muted-foreground">
+        <span>PARAMS</span>
+        {(["a", "b", "c", "d"] as const).map((k) => (
+          <label key={k} className="flex items-center gap-1">
+            <span className="neon-text">{k}</span>
+            <input type="range" min={-5} max={5} step={0.05} value={graphParams[k]}
+              onChange={(e) => setGraphParam(k, Number(e.target.value))}
+              className="w-16 align-middle" />
+            <span className="tabular-nums w-10">{graphParams[k].toFixed(2)}</span>
+          </label>
+        ))}
+      </div>
       <div className="flex flex-1 min-h-0">
         <div
           ref={wrapRef}
@@ -388,6 +400,9 @@ export function GraphPanel() {
                     <option value="explicit">y=f(x)</option>
                     <option value="parametric">param</option>
                     <option value="polar">polar</option>
+                    <option value="implicit">implicit</option>
+                    <option value="slope">slope</option>
+                    <option value="vector">vector</option>
                   </select>
                   <button className="pill-btn !px-1.5" onClick={() => updatePlot(p.id, { enabled: !p.enabled })}>
                     {p.enabled ? <Eye size={12} /> : <EyeOff size={12} />}
@@ -410,6 +425,22 @@ export function GraphPanel() {
                 {p.kind === "polar" && (
                   <input className="field !py-1 text-[0.72rem]" placeholder="r(θ)= 1+cos(theta)"
                     value={p.expr} onChange={(e) => updatePlot(p.id, { expr: e.target.value })} />
+                )}
+                {p.kind === "implicit" && (
+                  <input className="field !py-1 text-[0.72rem]" placeholder="x^2 + y^2 - 4"
+                    value={p.expr} onChange={(e) => updatePlot(p.id, { expr: e.target.value })} />
+                )}
+                {p.kind === "slope" && (
+                  <input className="field !py-1 text-[0.72rem]" placeholder="dy/dx = x - y"
+                    value={p.expr} onChange={(e) => updatePlot(p.id, { expr: e.target.value })} />
+                )}
+                {p.kind === "vector" && (
+                  <div className="space-y-1">
+                    <input className="field !py-1 text-[0.72rem]" placeholder="P(x,y) = -y"
+                      value={p.expr} onChange={(e) => updatePlot(p.id, { expr: e.target.value })} />
+                    <input className="field !py-1 text-[0.72rem]" placeholder="Q(x,y) = x"
+                      value={p.expr2 ?? ""} onChange={(e) => updatePlot(p.id, { expr2: e.target.value })} />
+                  </div>
                 )}
                 <div className="text-[0.55rem] tracking-widest text-muted-foreground">f{i + 1}</div>
               </div>
