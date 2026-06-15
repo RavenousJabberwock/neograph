@@ -1,3 +1,23 @@
+/**
+ * lib/calc/store.tsx — Central CalcProvider context.
+ * ------------------------------------------------------------------
+ * Single source of truth for the workstation:
+ *   • expression / history     — calculator input + ANS chain
+ *   • plots / viewport         — graph engine state (synced to bridge.ts)
+ *   • visible / windows        — which panels are open + drag/resize rects
+ *   • wallpaper                — calculator background (preset or image)
+ *   • graphParams (a,b,c,d)    — live sliders for parametric expressions
+ *   • casMode / vintage        — global UI toggles
+ *
+ * Adding a panel:
+ *   1. Add its key to `PanelKey`.
+ *   2. Add default rect to DEFAULT_WINDOWS.
+ *   3. Add a `visible` default (true to show on first load).
+ *   4. Register it in src/routes/index.tsx PANELS.
+ *
+ * Window layout is persisted to localStorage under `lvbl_calc_windows_v1`.
+ * ------------------------------------------------------------------
+ */
 import { createContext, useContext, useState, useCallback, type ReactNode, useRef, useEffect } from "react";
 import { defaultViewport, PLOT_COLORS, type PlotExpr, type Viewport } from "./math";
 import { bindBridge } from "./bridge";
