@@ -94,9 +94,10 @@ export function CasPanel() {
         }
         case "factor": {
           const v = math.evaluate(input);
-          const fr = math.fraction(v) as { s: number; n: number; d: number };
-          out = `${fr.s * fr.n}/${fr.d}  ≈  ${Number(v).toString()}`;
-          outTex = `\\frac{${fr.s * fr.n}}{${fr.d}} \\approx ${Number(v).toString()}`;
+          const fr = math.fraction(v) as unknown as { s: number | bigint; n: number | bigint; d: number | bigint };
+          const sNum = Number(fr.s), nNum = Number(fr.n), dNum = Number(fr.d);
+          out = `${sNum * nNum}/${dNum}  ≈  ${Number(v).toString()}`;
+          outTex = `\\frac{${sNum * nNum}}{${dNum}} \\approx ${Number(v).toString()}`;
           trace.push(`exact rational → ${out}`);
           break;
         }
