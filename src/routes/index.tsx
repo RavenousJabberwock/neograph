@@ -21,6 +21,9 @@ import { RadioPanel } from "@/components/calc/RadioPanel";
 import { NotepadPanel } from "@/components/calc/NotepadPanel";
 import { Plot3DPanel } from "@/components/calc/Plot3DPanel";
 import { NumericsPanel } from "@/components/calc/NumericsPanel";
+import { RadioProvider } from "@/lib/calc/radio-context";
+import { RadioMiniDock } from "@/components/calc/RadioMiniDock";
+import { HelpDialog } from "@/components/calc/HelpDialog";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -68,7 +71,9 @@ const PANELS: PanelDef[] = [
 function Index() {
   return (
     <CalcProvider>
-      <Workstation />
+      <RadioProvider>
+        <Workstation />
+      </RadioProvider>
     </CalcProvider>
   );
 }
@@ -88,7 +93,12 @@ function Workstation() {
              backgroundSize: "32px 32px",
            }}>
         {sidebarOpen && (
-          <FloatingWindow panelKey="workspace" title="WORKSPACE" accent="amber">
+          <FloatingWindow
+            panelKey="workspace"
+            title="WORKSPACE"
+            accent="amber"
+            onClose={() => setSidebarOpen(false)}
+          >
             <WorkspaceSidebar />
           </FloatingWindow>
         )}
@@ -105,6 +115,8 @@ function Workstation() {
           </div>
         )}
         <ShortcutsDialog />
+        <HelpDialog />
+        <RadioMiniDock />
       </div>
     </div>
   );

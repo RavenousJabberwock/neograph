@@ -5,7 +5,8 @@
  * when a window is closed mid-drag).
  */
 import { useCalc, type PanelKey } from "@/lib/calc/store";
-import { X, Minus } from "lucide-react";
+import { openHelp } from "@/components/calc/HelpDialog";
+import { X, Minus, HelpCircle } from "lucide-react";
 import { useCallback, useEffect, useRef, type ReactNode, type PointerEvent as RPE } from "react";
 
 interface Props {
@@ -13,9 +14,13 @@ interface Props {
   title: string;
   accent?: "cyan" | "amber" | "magenta";
   children: ReactNode;
+  /** Override the close handler. Default toggles `visible[panelKey]`. */
+  onClose?: () => void;
+  /** Override which help section opens. Defaults to panelKey. */
+  helpKey?: PanelKey;
 }
 
-export function FloatingWindow({ panelKey, title, accent = "cyan", children }: Props) {
+export function FloatingWindow({ panelKey, title, accent = "cyan", children, onClose, helpKey }: Props) {
   const { windows, setWindow, focusWindow, toggleVisible } = useCalc();
   const w = windows[panelKey];
   const dragRef = useRef<{ mode: "move" | "resize"; startX: number; startY: number; rect: typeof w } | null>(null);
@@ -98,13 +103,19 @@ export function FloatingWindow({ panelKey, title, accent = "cyan", children }: P
           <button
             className="pill-btn !px-1.5 !py-0.5"
             onPointerDown={(e) => e.stopPropagation()}
+            onClick={() => openHelp(helpKey ?? panelKey)}
+            title="Help for this window (F1)"
+          ><HelpCircle size={10} /></button>
+          <button
+            className="pill-btn !px-1.5 !py-0.5"
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={() => setWindow(panelKey, { min: true })}
             title="Minimize"
           ><Minus size={10} /></button>
           <button
             className="pill-btn !px-1.5 !py-0.5"
             onPointerDown={(e) => e.stopPropagation()}
-            onClick={() => toggleVisible(panelKey)}
+            onClick={() => (onClose ? onClose() : toggleVisible(panelKey))}
             title="Close"
           ><X size={10} /></button>
         </div>
