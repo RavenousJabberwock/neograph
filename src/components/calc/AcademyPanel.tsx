@@ -169,8 +169,46 @@ function ExerciseCard({
   );
 }
 
-function LessonView({ lesson, progress, setProgress }: {
+function ResourceList({ items }: { items: Resource[] }) {
+  if (!items.length) return null;
+  const icon = (k: Resource["kind"]) =>
+    k === "watch" ? <Video size={11} /> :
+    k === "practice" ? <PencilRuler size={11} /> :
+    <BookText size={11} />;
+  return (
+    <section className="space-y-1.5">
+      <h3 className="text-[0.65rem] tracking-widest text-[var(--color-amber)]">
+        FURTHER LEARNING · WRITTEN &amp; VIDEO
+      </h3>
+      <ul className="space-y-1">
+        {items.map((r, i) => (
+          <li key={i}>
+            <a
+              href={r.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-start gap-1.5 text-[0.72rem] hover:text-[var(--color-primary)] group"
+            >
+              <span className="mt-0.5 text-muted-foreground group-hover:text-[var(--color-primary)]">{icon(r.kind)}</span>
+              <span className="flex-1">
+                {r.title}
+                <span className="text-muted-foreground"> · {r.source}</span>
+              </span>
+              <ExternalLink size={9} className="mt-1 text-muted-foreground" />
+            </a>
+          </li>
+        ))}
+      </ul>
+      <div className="text-[0.55rem] text-muted-foreground italic pt-1">
+        External links are curated free resources. If a link is dead, please report it.
+      </div>
+    </section>
+  );
+}
+
+function LessonView({ lesson, stage, progress, setProgress }: {
   lesson: Lesson;
+  stage: Stage;
   progress: Progress;
   setProgress: (p: Progress) => void;
 }) {
@@ -183,6 +221,8 @@ function LessonView({ lesson, progress, setProgress }: {
     const next: Progress = { ex: { ...progress.ex, [lesson.id]: { ...done, [i]: ok ? "ok" : "miss" } } };
     setProgress(next); saveProgress(next);
   };
+
+  const resources = lesson.resources ?? STAGE_RESOURCES[stage.id] ?? GENERIC_RESOURCES;
 
   return (
     <div className="flex-1 min-w-0 overflow-auto p-4 space-y-4">
@@ -221,6 +261,8 @@ function LessonView({ lesson, progress, setProgress }: {
           ))}
         </section>
       )}
+
+      <ResourceList items={resources} />
     </div>
   );
 }
