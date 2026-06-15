@@ -313,7 +313,12 @@ export function AcademyPanel() {
               style={l.id === lessonId ? { background: "oklch(0.25 0.03 250)", color: "var(--color-primary)" } : undefined}
             >
               <span className={`mt-0.5 inline-block w-1.5 h-1.5 rounded-full ${complete ? "bg-[oklch(0.78_0.18_140)]" : ok > 0 ? "bg-[var(--color-amber)]" : "bg-[oklch(0.4_0.03_250)]"}`} />
-              <span className="flex-1">{l.title}</span>
+              <span className="flex-1">
+                {l.title}
+                {l.kind === "practice" && (
+                  <span className="ml-1 text-[0.5rem] tracking-widest text-[var(--color-amber)] align-middle">· DRILL</span>
+                )}
+              </span>
             </button>
           );
         })}
