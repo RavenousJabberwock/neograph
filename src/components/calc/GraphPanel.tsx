@@ -177,7 +177,11 @@ export function GraphPanel() {
             const x0 = xMin + i * dx, y0 = yMin + j * dy;
             const x1 = x0 + dx, y1 = y0 + dy;
             const seg: Array<[number, number]> = [];
-            const lerp = (a: number, b: number, va: number, vb: number) => a + ((0 - va) / (vb - va)) * (b - a);
+            const lerp = (a: number, b: number, va: number, vb: number) => {
+              const denom = vb - va;
+              if (!Number.isFinite(denom) || Math.abs(denom) < 1e-14) return (a + b) / 2;
+              return a + ((0 - va) / denom) * (b - a);
+            };
             // bottom edge (y0): v00 ↔ v10
             if ((v00 > 0) !== (v10 > 0)) seg.push([lerp(x0, x1, v00, v10), y0]);
             // right edge (x1): v10 ↔ v11
@@ -260,7 +264,14 @@ export function GraphPanel() {
     ctx.shadowBlur = 0;
   }, [plots, viewport, size, progress, graphParams]);
 
-  useEffect(() => { draw(); }, [draw]);
+  // Coalesce redraws into a single rAF — prevents O(N) redraws when sliders
+  // or viewport pans fire many state updates in the same frame.
+  const rafRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(() => { rafRef.current = null; draw(); });
+    return () => { if (rafRef.current !== null) cancelAnimationFrame(rafRef.current); };
+  }, [draw]);
 
   // expose canvas for snapshot / wallpaper / external scripts
   useEffect(() => { bindBridge({ graphCanvas: canvasRef.current }); }, [size.w, size.h]);
