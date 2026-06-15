@@ -55,6 +55,10 @@ export function NotepadPanel() {
 
   const active = tabs.find((t) => t.id === activeId) ?? tabs[0];
 
+  // If the user hasn't explicitly toggled this tab, default .md → render, else → edit.
+  const effectiveMode: ViewMode =
+    viewModes[active.id] ?? (isMarkdownName(active.name) ? "render" : "edit");
+
   const updateActive = (patch: Partial<Tab>) =>
     setTabs((prev) => prev.map((t) => (t.id === active.id ? { ...t, ...patch } : t)));
 
