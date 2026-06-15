@@ -3,6 +3,8 @@ import { useState } from "react";
 import { CalcProvider, useCalc, type PanelKey } from "@/lib/calc/store";
 import { TopBar } from "@/components/calc/TopBar";
 import { FloatingWindow } from "@/components/calc/FloatingWindow";
+import { PanelErrorBoundary } from "@/components/calc/PanelErrorBoundary";
+import { ShortcutsDialog } from "@/components/calc/ShortcutsDialog";
 import { WorkspaceSidebar } from "@/components/calc/WorkspaceSidebar";
 import { CalculatorPanel } from "@/components/calc/CalculatorPanel";
 import { GraphPanel } from "@/components/calc/GraphPanel";
@@ -93,7 +95,7 @@ function Workstation() {
         {PANELS.map((p) =>
           visible[p.key] ? (
             <FloatingWindow key={p.key} panelKey={p.key} title={p.title} accent={p.accent}>
-              {p.render()}
+              <PanelErrorBoundary label={p.title}>{p.render()}</PanelErrorBoundary>
             </FloatingWindow>
           ) : null,
         )}
@@ -102,6 +104,7 @@ function Workstation() {
             <span className="text-[0.55rem] tracking-widest text-muted-foreground self-center">DOCK</span>
           </div>
         )}
+        <ShortcutsDialog />
       </div>
     </div>
   );
