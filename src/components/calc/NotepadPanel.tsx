@@ -169,6 +169,16 @@ export function NotepadPanel() {
         <input ref={fileRef} type="file" accept=".txt,.md,.log,.csv,.json" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) loadTab(f); e.target.value = ""; }} />
         <button className="pill-btn !text-[0.6rem]" data-active={findOpen} onClick={() => setFindOpen((v) => !v)} title="Find / Replace (⌘F)"><Search size={10} /> find</button>
         <button className="pill-btn !text-[0.6rem]" onClick={() => { setRenamingId(active.id); setRenameValue(active.name); }}><Pencil size={10} /> rename</button>
+        {isMarkdownName(active.name) && (
+          <button
+            className="pill-btn !text-[0.6rem]"
+            data-active={effectiveMode === "render"}
+            onClick={() => setViewModes((m) => ({ ...m, [active.id]: effectiveMode === "render" ? "edit" : "render" }))}
+            title="Toggle Markdown render (⌘E)"
+          >
+            {effectiveMode === "render" ? <><Code2 size={10} /> source</> : <><Eye size={10} /> render</>}
+          </button>
+        )}
         <span className="ml-auto text-[0.55rem] tracking-widest text-muted-foreground tabular-nums">
           {stats.lines} L · {stats.words} W · {stats.chars} C
         </span>
@@ -184,15 +194,19 @@ export function NotepadPanel() {
         </div>
       )}
 
-      <textarea
-        ref={taRef}
-        spellCheck={false}
-        className="flex-1 min-h-0 bg-[oklch(0.13_0.025_250)] text-foreground p-3 font-mono text-[0.78rem] leading-relaxed outline-none resize-none"
-        value={active.content}
-        onChange={(e) => updateActive({ content: e.target.value })}
-        onKeyDown={onKeyDown}
-        placeholder="start typing…"
-      />
+      {effectiveMode === "render" ? (
+        <MarkdownView source={active.content} />
+      ) : (
+        <textarea
+          ref={taRef}
+          spellCheck={false}
+          className="flex-1 min-h-0 bg-[oklch(0.13_0.025_250)] text-foreground p-3 font-mono text-[0.78rem] leading-relaxed outline-none resize-none"
+          value={active.content}
+          onChange={(e) => updateActive({ content: e.target.value })}
+          onKeyDown={onKeyDown}
+          placeholder="start typing…"
+        />
+      )}
     </div>
   );
 }
