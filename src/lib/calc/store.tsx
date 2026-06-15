@@ -1,5 +1,11 @@
 import { createContext, useContext, useState, useCallback, type ReactNode, useRef, useEffect } from "react";
 import { defaultViewport, PLOT_COLORS, type PlotExpr, type Viewport } from "./math";
+import { bindBridge } from "./bridge";
+
+export type WallpaperName = "grid" | "scanlines" | "dots" | "hex" | "plain";
+export type Wallpaper =
+  | { kind: "preset"; name: WallpaperName }
+  | { kind: "image"; url: string; label?: string };
 
 export type PanelKey =
   | "calc" | "graph" | "table" | "cas"
@@ -30,6 +36,8 @@ interface CalcState {
   windows: Record<PanelKey, WinRect>;
   setWindow: (k: PanelKey, patch: Partial<WinRect>) => void;
   focusWindow: (k: PanelKey) => void;
+  wallpaper: Wallpaper;
+  setWallpaper: (w: Wallpaper) => void;
 }
 
 const Ctx = createContext<CalcState | null>(null);
@@ -64,7 +72,20 @@ export function CalcProvider({ children }: { children: ReactNode }) {
   const [casMode, setCasMode] = useState(false);
   const [vintage, setVintage] = useState(false);
   const [windows, setWindows] = useState<Record<PanelKey, WinRect>>(DEFAULT_WINDOWS);
+  const [wallpaper, setWallpaper] = useState<Wallpaper>({ kind: "preset", name: "grid" });
   const zCounter = useRef(50);
+
+  // Keep the imperative bridge in sync with latest state via refs.
+  const plotsRef = useRef(plots); plotsRef.current = plots;
+  const viewportRef = useRef(viewport); viewportRef.current = viewport;
+  useEffect(() => {
+    bindBridge({
+      getPlots: () => plotsRef.current,
+      setPlots: (p) => setPlots(p as Parameters<typeof setPlots>[0]),
+      getViewport: () => viewportRef.current,
+      setViewport,
+    });
+  }, []);
 
   // Persist window layout
   useEffect(() => {
@@ -146,6 +167,7 @@ export function CalcProvider({ children }: { children: ReactNode }) {
       casMode, setCasMode,
       vintage, setVintage,
       windows, setWindow, focusWindow,
+      wallpaper, setWallpaper,
     }}>
       {children}
     </Ctx.Provider>

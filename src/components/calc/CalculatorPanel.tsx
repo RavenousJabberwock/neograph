@@ -1,12 +1,13 @@
 import { useCalc } from "@/lib/calc/store";
 import { math } from "@/lib/calc/math";
+import { wallpaperStyle } from "@/lib/calc/wallpaper";
 import { CornerDownLeft, Delete } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 type KeyDef = { label: string; insert?: string; variant?: "op" | "fn" | "eq" | "ac"; action?: () => void };
 
 export function CalculatorPanel() {
-  const { expression, setExpression, insertAtCursor, registerInputRef, pushHistory, history, casMode } = useCalc();
+  const { expression, setExpression, insertAtCursor, registerInputRef, pushHistory, history, casMode, wallpaper } = useCalc();
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => { registerInputRef(inputRef.current); }, [registerInputRef]);
@@ -96,11 +97,12 @@ export function CalculatorPanel() {
   ];
 
   return (
-    <div className="p-3 flex flex-col gap-3 h-full">
-      <div className="text-[0.55rem] tracking-widest text-muted-foreground text-right">
-        MODE · {casMode ? "CAS" : "NUM"}
+    <div className="relative p-3 flex flex-col gap-3 h-full" style={wallpaperStyle(wallpaper)}>
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, oklch(0.18 0.03 250 / 55%), oklch(0.16 0.03 250 / 78%))" }} />
+      <div className="relative text-[0.55rem] tracking-widest text-muted-foreground text-right">
+        MODE · {casMode ? "CAS" : "NUM"} · WP · {wallpaper.kind === "preset" ? wallpaper.name.toUpperCase() : (wallpaper.label ?? "IMAGE")}
       </div>
-      <div className="rounded-md border border-border bg-[oklch(0.16_0.03_250)] p-3 shadow-[var(--shadow-inset)]">
+      <div className="relative rounded-md border border-border bg-[oklch(0.16_0.03_250/85%)] p-3 shadow-[var(--shadow-inset)] backdrop-blur-sm">
         <div className="max-h-28 overflow-auto text-[0.7rem] text-muted-foreground space-y-0.5 mb-2">
           {history.slice(-6).map((h, i) => (
             <div key={i} className="flex items-baseline gap-2">
@@ -125,7 +127,7 @@ export function CalculatorPanel() {
         </div>
       </div>
 
-      <div className="grid grid-cols-6 gap-1.5">
+      <div className="relative grid grid-cols-6 gap-1.5">
         {keys.flat().map((k, i) => (
           <button
             key={i}
