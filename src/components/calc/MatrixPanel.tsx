@@ -157,7 +157,7 @@ export function MatrixPanel() {
         }
         case "mulAB": return { blocks: [{ title: "A · B", matrix: math.multiply(a, b) as number[][] }] };
         case "addAB": return { blocks: [{ title: "A + B", matrix: math.add(a, b) as number[][] }] };
-        case "kron":  return { blocks: [{ title: "A ⊗ B", matrix: math.kron(a, b) as number[][] }] };
+        case "kron":  return { blocks: [{ title: "A ⊗ B", matrix: math.kron(a, b) as unknown as number[][] }] };
         case "solve": {
           // Solve A x = b₁ (first column of B). Falls back to least squares via SVD.
           const bcol = b.map((r) => r[0]);
