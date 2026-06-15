@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 
 export function TopBar({ onToggleSidebar, sidebarOpen }: { onToggleSidebar: () => void; sidebarOpen: boolean }) {
   const { visible, toggleVisible, casMode } = useCalc();
-  const [time, setTime] = useState<string>("--:--:--");
+  const [time, setTime] = useState<string | null>(null);
   useEffect(() => {
     const update = () => setTime(new Date().toISOString().slice(11, 19));
     update();
@@ -60,7 +60,7 @@ export function TopBar({ onToggleSidebar, sidebarOpen }: { onToggleSidebar: () =
           CAS: <span className={casMode ? "neon-text" : "text-muted-foreground"}>{casMode ? "ON" : "OFF"}</span>
         </div>
         <div className="text-[0.65rem] tracking-[0.25em] text-muted-foreground tabular-nums" suppressHydrationWarning>
-          {time} UTC
+          <span suppressHydrationWarning>{time ?? "--:--:--"}</span> UTC
         </div>
         <Power size={14} className="text-[var(--color-amber)]" />
       </div>
