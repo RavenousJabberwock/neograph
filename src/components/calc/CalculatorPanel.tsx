@@ -102,7 +102,7 @@ export function CalculatorPanel() {
       <div className="relative text-[0.55rem] tracking-widest text-muted-foreground text-right">
         MODE · {casMode ? "CAS" : "NUM"} · WP · {wallpaper.kind === "preset" ? wallpaper.name.toUpperCase() : (wallpaper.label ?? "IMAGE")}
       </div>
-      <div className="rounded-md border border-border bg-[oklch(0.16_0.03_250)] p-3 shadow-[var(--shadow-inset)]">
+      <div className="relative rounded-md border border-border bg-[oklch(0.16_0.03_250/85%)] p-3 shadow-[var(--shadow-inset)] backdrop-blur-sm">
         <div className="max-h-28 overflow-auto text-[0.7rem] text-muted-foreground space-y-0.5 mb-2">
           {history.slice(-6).map((h, i) => (
             <div key={i} className="flex items-baseline gap-2">
@@ -127,7 +127,7 @@ export function CalculatorPanel() {
         </div>
       </div>
 
-      <div className="grid grid-cols-6 gap-1.5">
+      <div className="relative grid grid-cols-6 gap-1.5">
         {keys.flat().map((k, i) => (
           <button
             key={i}
