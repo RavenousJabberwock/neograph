@@ -29,9 +29,55 @@ function saveAll(ws: Record<string, Workspace>) {
 }
 
 export function WorkspaceSidebar() {
-  const { plots, setPlots, viewport, setViewport, visible, toggleVisible, casMode, setCasMode, vintage, setVintage } = useCalc();
+  const { plots, setPlots, viewport, setViewport, visible, toggleVisible, casMode, setCasMode, vintage, setVintage, wallpaper, setWallpaper } = useCalc();
   const [workspaces, setWorkspaces] = useState<Record<string, Workspace>>(loadAll());
   const [name, setName] = useState("default");
+  const [pickPlot, setPickPlot] = useState<string>("");
+
+  const presets: { name: WallpaperName; label: string }[] = [
+    { name: "grid",      label: "GRID"      },
+    { name: "scanlines", label: "SCAN"      },
+    { name: "dots",      label: "DOTS"      },
+    { name: "hex",       label: "HEX"       },
+    { name: "plain",     label: "PLAIN"     },
+  ];
+
+  const importGraphSnapshot = () => {
+    const url = getGraphSnapshot();
+    if (!url) { alert("Open the Graph window first."); return; }
+    setWallpaper({ kind: "image", url, label: "GRAPH" });
+  };
+
+  const importPlotAsWallpaper = () => {
+    const p = plots.find((pp) => pp.id === pickPlot);
+    if (!p) return;
+    // render a fresh standalone snapshot of just this plot
+    const W = 480, H = 320;
+    const c = document.createElement("canvas");
+    c.width = W; c.height = H;
+    const ctx = c.getContext("2d"); if (!ctx) return;
+    ctx.fillStyle = "oklch(0.14 0.03 250)"; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = p.color; ctx.lineWidth = 2.2; ctx.shadowColor = p.color; ctx.shadowBlur = 8;
+    const { xMin, xMax, yMin, yMax } = viewport;
+    const xToPx = (x: number) => ((x - xMin) / (xMax - xMin)) * W;
+    const yToPx = (y: number) => H - ((y - yMin) / (yMax - yMin)) * H;
+    try {
+      // dynamic to avoid extra import at module load
+      import("@/lib/calc/math").then(({ math }) => {
+        const compiled = math.compile(p.expr);
+        ctx.beginPath(); let pen = false;
+        for (let i = 0; i <= 800; i++) {
+          const x = xMin + ((xMax - xMin) * i) / 800;
+          let y = NaN; try { y = Number(compiled.evaluate({ x })); } catch { /* skip */ }
+          if (!Number.isFinite(y)) { pen = false; continue; }
+          const px = xToPx(x), py = yToPx(y);
+          if (!pen) { ctx.moveTo(px, py); pen = true; } else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+        setWallpaper({ kind: "image", url: c.toDataURL("image/png"), label: `f(${p.expr.slice(0, 12)})` });
+      });
+    } catch { /* ignore */ }
+  };
 
   const save = () => {
     const ws: Workspace = { name, data: { plots, viewport, visible, casMode, vintage } };
@@ -97,6 +143,38 @@ export function WorkspaceSidebar() {
               <button className="pill-btn !px-1.5" onClick={() => del(n)}><X size={12} /></button>
             </div>
           ))}
+        </div>
+      </div>
+
+      <div className="border-t border-border pt-3">
+        <div className="text-[0.55rem] tracking-widest text-muted-foreground mb-1.5 flex items-center gap-1">
+          <ImageIcon size={10} /> CALC · WALLPAPER
+        </div>
+        <div className="flex flex-wrap gap-1 mb-2">
+          {presets.map((p) => (
+            <button
+              key={p.name}
+              className="pill-btn !text-[0.6rem] !px-1.5 !py-0.5"
+              data-active={wallpaper.kind === "preset" && wallpaper.name === p.name}
+              onClick={() => setWallpaper({ kind: "preset", name: p.name })}
+            >{p.label}</button>
+          ))}
+        </div>
+        <button className="pill-btn w-full justify-center mb-1.5" onClick={importGraphSnapshot}>
+          <Camera size={12} /> SNAP GRAPH WINDOW
+        </button>
+        <div className="flex gap-1">
+          <select
+            className="field !py-1 text-[0.65rem] flex-1"
+            value={pickPlot}
+            onChange={(e) => setPickPlot(e.target.value)}
+          >
+            <option value="">— pick curve —</option>
+            {plots.map((p, i) => (
+              <option key={p.id} value={p.id}>f{i + 1} · {p.expr.slice(0, 18)}</option>
+            ))}
+          </select>
+          <button className="pill-btn !text-[0.6rem]" disabled={!pickPlot} onClick={importPlotAsWallpaper}>IMPORT</button>
         </div>
       </div>
 
