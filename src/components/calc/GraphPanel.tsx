@@ -2,12 +2,12 @@ import { useCalc } from "@/lib/calc/store";
 import { math, PLOT_COLORS, defaultViewport, type PlotExpr } from "@/lib/calc/math";
 import { bindBridge } from "@/lib/calc/bridge";
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Download, Plus, Trash2, ZoomIn, ZoomOut, Crosshair, Play, Eye, EyeOff } from "lucide-react";
+import { Download, Plus, Trash2, ZoomIn, ZoomOut, Crosshair, Play, Eye, EyeOff, Undo2, Redo2 } from "lucide-react";
 
 interface Hover { x: number; y: number; sx: number; sy: number }
 
 export function GraphPanel() {
-  const { plots, setPlots, addPlot, viewport, setViewport, vintage, setVintage, graphParams, setGraphParam } = useCalc();
+  const { plots, setPlots, addPlot, viewport, setViewport, vintage, setVintage, graphParams, setGraphParam, undoPlots, redoPlots, canUndoPlots, canRedoPlots } = useCalc();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [size, setSize] = useState({ w: 600, h: 360 });
@@ -344,6 +344,8 @@ export function GraphPanel() {
       <div className="flex items-center gap-1 px-2 py-1 border-b border-border">
         <span className="text-[0.6rem] tracking-widest text-muted-foreground">VIEWPORT</span>
         <div className="ml-auto flex items-center gap-1">
+          <button className="pill-btn" onClick={undoPlots} disabled={!canUndoPlots} title="Undo plot edit (Ctrl+Z)"><Undo2 size={12} /></button>
+          <button className="pill-btn" onClick={redoPlots} disabled={!canRedoPlots} title="Redo plot edit (Ctrl+Y)"><Redo2 size={12} /></button>
           <button className="pill-btn" onClick={() => zoom(1 / 1.3)} title="Zoom in"><ZoomIn size={12} /></button>
           <button className="pill-btn" onClick={() => zoom(1.3)} title="Zoom out"><ZoomOut size={12} /></button>
           <button className="pill-btn" onClick={() => setViewport(defaultViewport)} title="Reset"><Crosshair size={12} /></button>
