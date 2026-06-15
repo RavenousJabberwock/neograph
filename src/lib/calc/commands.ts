@@ -46,11 +46,13 @@ registerCommand({
   run: ({ args, print }) => print(args.join(" ")),
 });
 registerCommand({
-  name: "=", help: "= <expr>   · evaluate with mathjs",
+  name: "=", help: "= <expr>   · evaluate with mathjs (binds result to `ans`)",
   run: ({ raw, print, scope }) => {
     const expr = raw.slice(raw.indexOf("=") + 1).trim();
     try {
       const v = math.evaluate(expr, scope);
+      const n = Number(v);
+      if (Number.isFinite(n)) scope.ans = n;
       print(String(v));
     } catch (e) { print(`✖ ${(e as Error).message}`); }
   },

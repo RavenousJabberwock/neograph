@@ -7,7 +7,7 @@ import { useEffect, useRef } from "react";
 type KeyDef = { label: string; insert?: string; variant?: "op" | "fn" | "eq" | "ac"; action?: () => void };
 
 export function CalculatorPanel() {
-  const { expression, setExpression, insertAtCursor, registerInputRef, pushHistory, history, casMode, wallpaper } = useCalc();
+  const { expression, setExpression, insertAtCursor, registerInputRef, pushHistory, history, casMode, wallpaper, mathScope } = useCalc();
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => { registerInputRef(inputRef.current); }, [registerInputRef]);
@@ -23,10 +23,11 @@ export function CalculatorPanel() {
           const simp = math.simplify(node);
           out = simp.toString();
         } catch {
-          out = String(math.evaluate(expression));
+          // mathScope exposes `ans` for chained calculations.
+          out = String(math.evaluate(expression, mathScope));
         }
       } else {
-        out = String(math.evaluate(expression));
+        out = String(math.evaluate(expression, mathScope));
       }
       pushHistory({ input: expression, output: out });
       setExpression(out);
