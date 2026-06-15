@@ -447,4 +447,64 @@ export const HELP: Record<PanelKey, HelpSection> = {
     examples: [{ input: "Save 'study'", result: "Stores current visible windows + wallpaper." }],
     concepts: [],
   },
+
+  academy: {
+    title: "Academy",
+    tagline: "K–Postgrad math curriculum with practice problems.",
+    summary:
+      "A self-contained learning track that explains the mathematics behind every panel — from place value through real analysis. Each lesson includes worked theory and checkable exercises; progress is stored locally.",
+    concepts: [
+      {
+        title: "Spaced practice",
+        body: "Mix easy and hard lessons in the same sitting. The brain consolidates better when topics interleave than when one topic is drilled to exhaustion.",
+      },
+      {
+        title: "Active recall",
+        body: "Attempt every exercise before peeking at the explanation. The retrieval effort, not the reading, is what builds durable memory.",
+      },
+      {
+        title: "From concrete to abstract",
+        body: "The curriculum is ordered so each stage rests on the previous one. If a lesson feels opaque, drop back two stages and rebuild the foundation.",
+      },
+    ],
+    keys: [
+      { key: "Stages rail", what: "Pick a grade band (K–5 → Postgrad)." },
+      { key: "Lessons rail", what: "Choose a topic; green dot = all exercises passed." },
+      { key: "CHECK", what: "Grade your answer (numeric tolerance / symbolic equality / multiple choice)." },
+      { key: "HINT", what: "Reveal a nudge without spoiling the full explanation." },
+      { key: "RETRY", what: "Clear the verdict and try again." },
+    ],
+    examples: [
+      { input: "Calculus I → 'The derivative'", result: "Definition, rules, and 3 practice problems." },
+      { input: "Linear Algebra → 'SVD'", result: "Decomposition, Eckart–Young, dimension drill." },
+    ],
+    tips: [
+      "Open Academy from any panel's help — the suggested lesson jumps you to the relevant topic.",
+      "Exercises accept arithmetic (e.g. '1/2' or 'sqrt(2)') as numeric answers.",
+    ],
+    related: ["calc", "cas", "graph", "numerics", "matrix", "stats"],
+  },
 };
+
+// ─── Cross-links: tie each panel to an Academy lesson when appropriate ───
+HELP.calc.academy      = "alg-quadratic";
+HELP.calc.furtherAcademy = ["pre-linear-eq", "alg-exp-log"];
+HELP.graph.academy     = "pre-functions";
+HELP.graph.furtherAcademy = ["trig-unit-circle", "cal1-applications"];
+HELP.plot3d.academy    = "cal3-partials";
+HELP.plot3d.furtherAcademy = ["cal3-double-integrals"];
+HELP.table.academy     = "pre-functions";
+HELP.cas.academy       = "cal1-derivative";
+HELP.cas.furtherAcademy = ["alg-poly-factor", "cal1-integral"];
+HELP.numerics.academy  = "num-newton";
+HELP.numerics.furtherAcademy = ["cal1-integral", "ode-first-order", "num-fft"];
+HELP.ide.academy       = "disc-induction";
+HELP.stats.academy     = "prob-distributions";
+HELP.stats.furtherAcademy = ["prob-basics", "prob-hypothesis"];
+HELP.matrix.academy    = "la-matmul";
+HELP.matrix.furtherAcademy = ["la-determinant", "la-eigen", "la-svd", "ode-linear-systems"];
+HELP.gsolve.academy    = "cal1-applications";
+HELP.constants.academy = "prob-distributions";
+HELP.terminal.academy  = "disc-modular";
+HELP.notepad.academy   = "disc-induction";
+HELP.workspace.academy = "k5-place-value";
