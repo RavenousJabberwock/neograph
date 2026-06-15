@@ -77,14 +77,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "🧮" },
+      { name: "description", content: "NeoGraph is a cyberpunk-themed programmable scientific graphing calculator." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "🧮" },
+      { property: "og:description", content: "NeoGraph is a cyberpunk-themed programmable scientific graphing calculator." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "🧮" },
+      { name: "twitter:description", content: "NeoGraph is a cyberpunk-themed programmable scientific graphing calculator." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a2718022-ff49-4bab-9bd9-d58fecec29c9/id-preview-b85ba86f--c3f021af-669c-480e-b46c-501d9184b689.lovable.app-1781551605486.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a2718022-ff49-4bab-9bd9-d58fecec29c9/id-preview-b85ba86f--c3f021af-669c-480e-b46c-501d9184b689.lovable.app-1781551605486.png" },
     ],
     links: [
       {
