@@ -1,8 +1,9 @@
-import { useCalc, type PanelKey } from "@/lib/calc/store";
+import { useCalc, type PanelKey, type WallpaperName } from "@/lib/calc/store";
 import { defaultViewport } from "@/lib/calc/math";
+import { getGraphSnapshot } from "@/lib/calc/bridge";
 import {
   FolderOpen, Save, FilePlus2, X, Calculator, LineChart, Table2, Sigma,
-  Code2, Paintbrush, BarChart3, Grid3x3, Crosshair, BookOpen,
+  Code2, Paintbrush, BarChart3, Grid3x3, Crosshair, BookOpen, Image as ImageIcon, Camera,
 } from "lucide-react";
 import { useState } from "react";
 
