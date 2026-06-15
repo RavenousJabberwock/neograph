@@ -12,13 +12,15 @@
  * ------------------------------------------------------------------
  */
 import { useEffect, useMemo, useState } from "react";
-import { HelpCircle, X, ChevronRight, BookOpen, Keyboard, Sigma, Lightbulb, Link2 } from "lucide-react";
+import { HelpCircle, X, ChevronRight, BookOpen, Keyboard, Sigma, Lightbulb, Link2, GraduationCap } from "lucide-react";
 import { HELP } from "@/lib/calc/help-content";
 import { useCalc, type PanelKey } from "@/lib/calc/store";
+import { findLesson, STAGES } from "@/lib/calc/academy-content";
+import { openAcademyLesson } from "./AcademyPanel";
 
 const ORDER: PanelKey[] = [
   "calc","graph","plot3d","table","cas","numerics","matrix","stats",
-  "gsolve","constants","ide","terminal","notepad","paint","radio","workspace",
+  "gsolve","constants","ide","terminal","notepad","paint","radio","academy","workspace",
 ];
 
 export interface HelpEventDetail { key?: PanelKey }
