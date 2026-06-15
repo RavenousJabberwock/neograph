@@ -3,6 +3,7 @@
  * imports (`@/lib/calc/academy-content`) keep working.
  */
 import type { PanelKey } from "../store";
+import type { Resource } from "./resources";
 
 export type ExerciseKind = "numeric" | "choice" | "expression" | "text";
 
@@ -26,6 +27,9 @@ export interface Lesson {
   related?: PanelKey[];
   /** Optional badge: "practice" lessons are pure drill sets. */
   kind?: "lesson" | "practice";
+  /** Optional per-lesson curated external links. If absent, the stage-level
+   *  defaults from `./resources.ts` are shown instead. */
+  resources?: Resource[];
 }
 
 export interface Stage {
@@ -35,3 +39,6 @@ export interface Stage {
   description: string;
   lessons: Lesson[];
 }
+
+export type { Resource, ResourceKind } from "./resources";
+

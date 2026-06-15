@@ -18,9 +18,10 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   GraduationCap, BookOpen, ChevronRight, Check, X as XIcon,
-  RotateCcw, ExternalLink, Lightbulb,
+  RotateCcw, ExternalLink, Lightbulb, BookText, Video, PencilRuler,
 } from "lucide-react";
 import { STAGES, type Exercise, type Lesson, type Stage, findLesson } from "@/lib/calc/academy-content";
+import { STAGE_RESOURCES, GENERIC_RESOURCES, type Resource } from "@/lib/calc/academy/resources";
 import { renderMarkdown } from "@/lib/calc/markdown";
 import { math } from "@/lib/calc/math";
 import { useCalc } from "@/lib/calc/store";
