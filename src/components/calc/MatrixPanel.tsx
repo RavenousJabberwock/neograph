@@ -1,13 +1,21 @@
 import { useMemo, useState } from "react";
 import { math } from "@/lib/calc/math";
+import {
+  Matrix as MLMatrix, EigenvalueDecomposition, SingularValueDecomposition,
+  LuDecomposition, QrDecomposition, CholeskyDecomposition,
+} from "ml-matrix";
 import { Plus, Minus, RotateCcw, Sigma } from "lucide-react";
 
-type Op = "rref" | "det" | "inv" | "transpose" | "mulAB" | "addAB";
+type Op =
+  | "rref" | "det" | "inv" | "transpose" | "rank" | "trace"
+  | "eigen" | "svd" | "lu" | "qr" | "cholesky" | "null" | "colspace"
+  | "mulAB" | "addAB" | "kron" | "solve";
 
 const SEED_A: number[][] = [
-  [1, 2, 3, 4],
-  [2, 3, 1, 5],
-  [3, 5, 4, 9],
+  [4, 1, 2, 0.5],
+  [1, 3, 0, 1],
+  [2, 0, 5, 1.5],
+  [0.5, 1, 1.5, 2],
 ];
 const SEED_B: number[][] = [
   [1, 0, 1],
@@ -19,7 +27,6 @@ const SEED_B: number[][] = [
 function newMatrix(rows: number, cols: number, fill = 0): number[][] {
   return Array.from({ length: rows }, () => Array.from({ length: cols }, () => fill));
 }
-
 function clone(m: number[][]) { return m.map((r) => r.slice()); }
 
 function rref(input: number[][]): { matrix: number[][]; steps: string[] } {
@@ -49,46 +56,184 @@ function rref(input: number[][]): { matrix: number[][]; steps: string[] } {
   return { matrix: m.map((row) => row.map((v) => (Math.abs(v) < 1e-12 ? 0 : v))), steps };
 }
 
+function toArr(m: MLMatrix): number[][] { return m.to2DArray(); }
+
 export function MatrixPanel() {
   const [a, setA] = useState<number[][]>(SEED_A);
   const [b, setB] = useState<number[][]>(SEED_B);
-  const [op, setOp] = useState<Op>("rref");
+  const [op, setOp] = useState<Op>("eigen");
 
-  const result = useMemo<{ matrix?: number[][]; scalar?: number; steps?: string[]; err?: string }>(() => {
+  type Block = { title: string; matrix?: number[][]; scalar?: number; list?: number[]; complexList?: { real: number; imag: number }[]; note?: string };
+  type R = { blocks: Block[]; steps?: string[]; err?: string };
+
+  const result = useMemo<R>(() => {
     try {
+      const A = new MLMatrix(a);
       switch (op) {
-        case "rref":      return rref(a);
-        case "det":       return { scalar: Number(math.det(a)) };
-        case "inv":       return { matrix: (math.inv(a) as number[][]) };
-        case "transpose": return { matrix: math.transpose(a) as number[][] };
-        case "mulAB":     return { matrix: math.multiply(a, b) as number[][] };
-        case "addAB":     return { matrix: math.add(a, b) as number[][] };
+        case "rref": { const r = rref(a); return { blocks: [{ title: "rref(A)", matrix: r.matrix }], steps: r.steps }; }
+        case "det":  return { blocks: [{ title: "det(A)", scalar: Number(math.det(a)) }] };
+        case "inv":  return { blocks: [{ title: "A⁻¹", matrix: math.inv(a) as number[][] }] };
+        case "transpose": return { blocks: [{ title: "Aᵀ", matrix: math.transpose(a) as number[][] }] };
+        case "trace": return { blocks: [{ title: "tr(A)", scalar: A.isSquare() ? A.trace() : NaN, note: A.isSquare() ? "" : "non-square" }] };
+        case "rank": {
+          // count nonzero pivots in RREF
+          const r = rref(a);
+          const rk = r.matrix.filter((row) => row.some((v) => Math.abs(v) > 1e-10)).length;
+          return { blocks: [{ title: "rank(A)", scalar: rk }] };
+        }
+        case "eigen": {
+          if (!A.isSquare()) return { blocks: [], err: "Eigen requires a square matrix" };
+          const e = new EigenvalueDecomposition(A);
+          const real = e.realEigenvalues, imag = e.imaginaryEigenvalues;
+          return {
+            blocks: [
+              { title: "eigenvalues", complexList: real.map((r, i) => ({ real: r, imag: imag[i] })) },
+              { title: "eigenvectors (cols)", matrix: toArr(e.eigenvectorMatrix) },
+            ],
+          };
+        }
+        case "svd": {
+          const s = new SingularValueDecomposition(A);
+          return {
+            blocks: [
+              { title: "U", matrix: toArr(s.leftSingularVectors) },
+              { title: "Σ (singular values)", list: s.diagonal },
+              { title: "Vᵀ", matrix: toArr(s.rightSingularVectors.transpose()) },
+              { title: "rank", scalar: s.rank },
+              { title: "cond(A)", scalar: s.condition },
+            ],
+          };
+        }
+        case "lu": {
+          const lu = new LuDecomposition(A);
+          return {
+            blocks: [
+              { title: "L", matrix: toArr(lu.lowerTriangularMatrix) },
+              { title: "U", matrix: toArr(lu.upperTriangularMatrix) },
+              { title: "P (pivots)", list: lu.pivotPermutationVector },
+            ],
+          };
+        }
+        case "qr": {
+          const qr = new QrDecomposition(A);
+          return {
+            blocks: [
+              { title: "Q", matrix: toArr(qr.orthogonalMatrix) },
+              { title: "R", matrix: toArr(qr.upperTriangularMatrix) },
+            ],
+          };
+        }
+        case "cholesky": {
+          if (!A.isSquare()) return { blocks: [], err: "Cholesky requires square SPD matrix" };
+          const ch = new CholeskyDecomposition(A);
+          return { blocks: [{ title: "L (A = LLᵀ)", matrix: toArr(ch.lowerTriangularMatrix) }] };
+        }
+        case "null": {
+          const r = rref(a);
+          const rows = a.length, cols = a[0].length;
+          const pivotCols: number[] = [];
+          for (let i = 0, j = 0; i < rows && j < cols; j++) {
+            if (Math.abs(r.matrix[i][j] - 1) < 1e-9) { pivotCols.push(j); i++; }
+          }
+          const freeCols = Array.from({ length: cols }, (_, j) => j).filter((j) => !pivotCols.includes(j));
+          if (freeCols.length === 0) return { blocks: [{ title: "null space", note: "trivial — {0}" }] };
+          const basis: number[][] = [];
+          for (const fc of freeCols) {
+            const v = new Array(cols).fill(0);
+            v[fc] = 1;
+            for (let i = 0; i < pivotCols.length; i++) v[pivotCols[i]] = -r.matrix[i][fc];
+            basis.push(v);
+          }
+          return { blocks: [{ title: "null(A) basis (rows)", matrix: basis }] };
+        }
+        case "colspace": {
+          const r = rref(a);
+          const pivotCols: number[] = [];
+          for (let i = 0, j = 0; i < a.length && j < a[0].length; j++) {
+            if (Math.abs(r.matrix[i][j] - 1) < 1e-9) { pivotCols.push(j); i++; }
+          }
+          const basis = pivotCols.map((j) => a.map((row) => row[j]));
+          return { blocks: [{ title: "col(A) basis (cols of A at pivot positions)", matrix: math.transpose(basis) as number[][] }] };
+        }
+        case "mulAB": return { blocks: [{ title: "A · B", matrix: math.multiply(a, b) as number[][] }] };
+        case "addAB": return { blocks: [{ title: "A + B", matrix: math.add(a, b) as number[][] }] };
+        case "kron":  return { blocks: [{ title: "A ⊗ B", matrix: math.kron(a, b) as number[][] }] };
+        case "solve": {
+          // Solve A x = b₁ (first column of B). Falls back to least squares via SVD.
+          const bcol = b.map((r) => r[0]);
+          if (a.length !== bcol.length) return { blocks: [], err: "rows(A) must match rows(B) for A·x = b" };
+          try {
+            const x = math.lusolve(a, bcol) as number[][];
+            return { blocks: [{ title: "x  s.t.  A·x = b₁", matrix: x }] };
+          } catch {
+            const svd = new SingularValueDecomposition(A);
+            const x = svd.solve(MLMatrix.columnVector(bcol));
+            return { blocks: [{ title: "x  (least-squares, SVD)", matrix: toArr(x) }] };
+          }
+        }
       }
     } catch (e) {
-      return { err: (e as Error).message };
+      return { blocks: [], err: (e as Error).message };
     }
+    return { blocks: [] };
   }, [a, b, op]);
+
+  const needB = op === "mulAB" || op === "addAB" || op === "kron" || op === "solve";
+
+  const opGroups: { title: string; ops: Op[] }[] = [
+    { title: "BASIC",   ops: ["rref", "det", "inv", "transpose", "trace", "rank"] },
+    { title: "DECOMP",  ops: ["eigen", "svd", "lu", "qr", "cholesky"] },
+    { title: "SPACES",  ops: ["null", "colspace"] },
+    { title: "A vs B",  ops: ["mulAB", "addAB", "kron", "solve"] },
+  ];
 
   return (
     <div className="flex flex-col h-full p-3 gap-2 overflow-auto">
-      <div className="flex flex-wrap gap-1.5">
-        {(["rref", "det", "inv", "transpose", "mulAB", "addAB"] as Op[]).map((o) => (
-          <button key={o} className="pill-btn" data-active={op === o} onClick={() => setOp(o)}>{o}</button>
+      <div className="flex flex-wrap gap-3">
+        {opGroups.map((g) => (
+          <div key={g.title} className="flex items-center gap-1">
+            <span className="text-[0.55rem] tracking-widest text-muted-foreground mr-1">{g.title}</span>
+            {g.ops.map((o) => (
+              <button key={o} className="pill-btn !text-[0.6rem]" data-active={op === o} onClick={() => setOp(o)}>{o}</button>
+            ))}
+          </div>
         ))}
       </div>
 
       <MatEditor label="A" m={a} setM={setA} accent="cyan" />
-      {(op === "mulAB" || op === "addAB") && <MatEditor label="B" m={b} setM={setB} accent="amber" />}
+      {needB && <MatEditor label="B" m={b} setM={setB} accent="amber" />}
 
-      <div className="rounded-md border border-border bg-[oklch(0.16_0.03_250)] p-2">
-        <div className="text-[0.55rem] tracking-widest text-muted-foreground mb-1 flex items-center gap-1">
-          <Sigma size={10} /> RESULT
+      <div className="rounded-md border border-border bg-[oklch(0.16_0.03_250)] p-2 space-y-3">
+        <div className="text-[0.55rem] tracking-widest text-muted-foreground flex items-center gap-1">
+          <Sigma size={10} /> RESULT · {op}
         </div>
         {result.err && <div className="text-destructive text-xs">{result.err}</div>}
-        {result.scalar !== undefined && (
-          <div className="text-base neon-text font-mono">det(A) = {result.scalar.toFixed(6)}</div>
-        )}
-        {result.matrix && <Matrix matrix={result.matrix} readonly />}
+        {result.blocks.map((blk, i) => (
+          <div key={i}>
+            <div className="text-[0.6rem] tracking-widest neon-text-amber mb-1">{blk.title}</div>
+            {blk.note && <div className="text-muted-foreground text-[0.7rem]">{blk.note}</div>}
+            {blk.scalar !== undefined && (
+              <div className="text-base neon-text font-mono">{Number.isFinite(blk.scalar) ? Number(blk.scalar).toString() : "—"}</div>
+            )}
+            {blk.list && (
+              <div className="flex flex-wrap gap-1 text-[0.72rem] font-mono">
+                {blk.list.map((v, k) => (
+                  <span key={k} className="px-2 py-0.5 rounded-sm border border-border neon-text">{v.toFixed(4)}</span>
+                ))}
+              </div>
+            )}
+            {blk.complexList && (
+              <div className="flex flex-wrap gap-1 text-[0.72rem] font-mono">
+                {blk.complexList.map((c, k) => (
+                  <span key={k} className="px-2 py-0.5 rounded-sm border border-border neon-text">
+                    {Number(c.real).toFixed(4)}{Math.abs(c.imag) > 1e-9 ? ` ${c.imag < 0 ? "−" : "+"} ${Math.abs(c.imag).toFixed(4)}i` : ""}
+                  </span>
+                ))}
+              </div>
+            )}
+            {blk.matrix && <Matrix matrix={blk.matrix} readonly />}
+          </div>
+        ))}
         {result.steps && result.steps.length > 0 && (
           <ol className="mt-2 text-[0.7rem] font-mono space-y-0.5">
             {result.steps.map((s, i) => (
@@ -125,13 +270,14 @@ function MatEditor({ label, m, setM, accent }: { label: string; m: number[][]; s
 }
 
 function Matrix({ matrix, onChange, readonly }: { matrix: number[][]; onChange?: (m: number[][]) => void; readonly?: boolean }) {
+  if (matrix.length === 0) return <div className="text-muted-foreground text-xs">∅</div>;
   return (
     <div className="inline-grid gap-1" style={{ gridTemplateColumns: `repeat(${matrix[0]?.length ?? 1}, minmax(0, 1fr))` }}>
       {matrix.map((row, i) =>
         row.map((v, j) => (
           readonly ? (
-            <div key={`${i}-${j}`} className="px-2 py-1 text-[0.72rem] font-mono neon-text border border-border rounded-sm bg-[oklch(0.13_0.02_250)] text-right tabular-nums">
-              {Math.abs(v) < 1e-12 ? "0" : Number(v.toFixed(4)).toString()}
+            <div key={`${i}-${j}`} className="px-2 py-1 text-[0.72rem] font-mono neon-text border border-border rounded-sm bg-[oklch(0.13_0.02_250)] text-right tabular-nums min-w-[3.5rem]">
+              {Math.abs(v) < 1e-10 ? "0" : Number(v.toFixed(4)).toString()}
             </div>
           ) : (
             <input
