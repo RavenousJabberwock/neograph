@@ -20,7 +20,7 @@ const BINDINGS: Array<[string, PanelKey, string]> = [
 ];
 
 export function ShortcutsDialog() {
-  const { toggleVisible, showPanel, undoPlots, redoPlots } = useCalc();
+  const { showPanel, undoPlots, redoPlots } = useCalc();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export function ShortcutsDialog() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, showPanel, toggleVisible, undoPlots, redoPlots]);
+  }, [open, showPanel, undoPlots, redoPlots]);
 
   if (!open) return null;
   return (
