@@ -3,7 +3,10 @@
  * ------------------------------------------------------------------
  * Single source of truth for the workstation:
  *   • expression / history     — calculator input + ANS chain
+ *   • ans                      — last numeric result, also injected into
+ *                                math.evaluate scopes via `mathScope`
  *   • plots / viewport         — graph engine state (synced to bridge.ts)
+ *   • plotHistory              — undo/redo stack for plot edits
  *   • visible / windows        — which panels are open + drag/resize rects
  *   • wallpaper                — calculator background (preset or image)
  *   • graphParams (a,b,c,d)    — live sliders for parametric expressions
@@ -15,7 +18,10 @@
  *   3. Add a `visible` default (true to show on first load).
  *   4. Register it in src/routes/index.tsx PANELS.
  *
- * Window layout is persisted to localStorage under `lvbl_calc_windows_v1`.
+ * Persistence:
+ *   • lvbl_calc_windows_v2  — window rects + visibility + wallpaper
+ *   • lvbl_calc_workspaces_v2 — saved named workspaces (in sidebar)
+ *   • Version bumps invalidate older keys instead of crashing on parse.
  * ------------------------------------------------------------------
  */
 import { createContext, useContext, useState, useCallback, type ReactNode, useRef, useEffect } from "react";
@@ -44,9 +50,17 @@ interface CalcState {
   registerInputRef: (el: HTMLInputElement | null) => void;
   history: Array<{ input: string; output: string }>;
   pushHistory: (h: { input: string; output: string }) => void;
+  ans: number | null;
+  setAns: (v: number | null) => void;
+  /** Inject this into math.evaluate(expr, mathScope) to make `ans` available. */
+  mathScope: Record<string, unknown>;
   plots: PlotExpr[];
   setPlots: (p: PlotExpr[] | ((prev: PlotExpr[]) => PlotExpr[])) => void;
   addPlot: () => void;
+  undoPlots: () => void;
+  redoPlots: () => void;
+  canUndoPlots: boolean;
+  canRedoPlots: boolean;
   viewport: Viewport;
   setViewport: (v: Viewport) => void;
   visible: Record<PanelKey, boolean>;
@@ -63,9 +77,15 @@ interface CalcState {
   setWallpaper: (w: Wallpaper) => void;
   graphParams: GraphParams;
   setGraphParam: (k: keyof GraphParams, v: number) => void;
+  /** Full workstation state → JSON string (for download). */
+  exportState: () => string;
+  /** Restore workstation from a previously exported JSON string. */
+  importState: (json: string) => boolean;
 }
 
 const Ctx = createContext<CalcState | null>(null);
+
+const STORAGE_LAYOUT = "lvbl_calc_windows_v2";
 
 const DEFAULT_WINDOWS: Record<PanelKey, WinRect> = {
   calc:      { x:  20, y:  20, w: 360, h: 540, z: 1 },
@@ -86,20 +106,87 @@ const DEFAULT_WINDOWS: Record<PanelKey, WinRect> = {
   workspace: { x:  20, y: 580, w: 280, h: 360, z: 11 },
 };
 
+const DEFAULT_VISIBLE: Record<PanelKey, boolean> = {
+  calc: true, graph: true, table: true, cas: true, workspace: true,
+  ide: false, paint: false, stats: false, matrix: false, gsolve: false, constants: false,
+  terminal: false, radio: false, notepad: false, plot3d: false, numerics: false,
+};
+
+// ─── Type guards for hydrated state ─────────────────────────────────────────
+function isWallpaper(x: unknown): x is Wallpaper {
+  if (!x || typeof x !== "object") return false;
+  const o = x as Record<string, unknown>;
+  if (o.kind === "preset") return typeof o.name === "string" && ["grid","scanlines","dots","hex","plain"].includes(o.name);
+  if (o.kind === "image") return typeof o.url === "string" && o.url.length < 10_000_000; // ~10MB cap
+  return false;
+}
+
+interface PersistedLayout {
+  windows?: Partial<Record<PanelKey, WinRect>>;
+  visible?: Partial<Record<PanelKey, boolean>>;
+  wallpaper?: Wallpaper;
+  casMode?: boolean;
+  vintage?: boolean;
+}
+
+function loadLayout(): PersistedLayout {
+  try {
+    const raw = localStorage.getItem(STORAGE_LAYOUT);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return typeof parsed === "object" && parsed ? parsed : {};
+  } catch (e) {
+    console.warn("[store] failed to load layout:", e);
+    return {};
+  }
+}
+
 export function CalcProvider({ children }: { children: ReactNode }) {
   const [expression, setExpression] = useState("");
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [history, setHistory] = useState<CalcState["history"]>([]);
-  const [plots, setPlots] = useState<PlotExpr[]>([
+  const [ans, setAns] = useState<number | null>(null);
+  // mathScope is mutated in-place so newly evaluated expressions see latest ans.
+  const mathScopeRef = useRef<Record<string, unknown>>({});
+
+  const [plots, setPlotsRaw] = useState<PlotExpr[]>([
     { id: "p1", kind: "explicit", enabled: true, color: PLOT_COLORS[0], expr: "sin(x)" },
     { id: "p2", kind: "explicit", enabled: true, color: PLOT_COLORS[1], expr: "0.3*x^2 - 2" },
   ]);
+  // Undo/redo stacks for plot edits.
+  const undoStack = useRef<PlotExpr[][]>([]);
+  const redoStack = useRef<PlotExpr[][]>([]);
+  const [undoTick, setUndoTick] = useState(0);
+
+  const setPlots = useCallback<CalcState["setPlots"]>((p) => {
+    setPlotsRaw((prev) => {
+      const next = typeof p === "function" ? (p as (q: PlotExpr[]) => PlotExpr[])(prev) : p;
+      // Skip no-op writes (e.g. identical re-render)
+      if (next !== prev) {
+        undoStack.current.push(prev);
+        if (undoStack.current.length > 100) undoStack.current.shift();
+        redoStack.current = [];
+        setUndoTick((t) => t + 1);
+      }
+      return next;
+    });
+  }, []);
+
+  const undoPlots = useCallback(() => {
+    const prev = undoStack.current.pop();
+    if (!prev) return;
+    setPlotsRaw((cur) => { redoStack.current.push(cur); return prev; });
+    setUndoTick((t) => t + 1);
+  }, []);
+  const redoPlots = useCallback(() => {
+    const nxt = redoStack.current.pop();
+    if (!nxt) return;
+    setPlotsRaw((cur) => { undoStack.current.push(cur); return nxt; });
+    setUndoTick((t) => t + 1);
+  }, []);
+
   const [viewport, setViewport] = useState<Viewport>(defaultViewport);
-  const [visible, setVisible] = useState<Record<PanelKey, boolean>>({
-    calc: true, graph: true, table: true, cas: true, workspace: true,
-    ide: false, paint: false, stats: false, matrix: false, gsolve: false, constants: false,
-    terminal: false, radio: false, notepad: false, plot3d: false, numerics: false,
-  });
+  const [visible, setVisible] = useState<Record<PanelKey, boolean>>(DEFAULT_VISIBLE);
   const [casMode, setCasMode] = useState(false);
   const [vintage, setVintage] = useState(false);
   const [windows, setWindows] = useState<Record<PanelKey, WinRect>>(DEFAULT_WINDOWS);
@@ -109,6 +196,9 @@ export function CalcProvider({ children }: { children: ReactNode }) {
     setGraphParams((prev) => ({ ...prev, [k]: v }));
   }, []);
   const zCounter = useRef(50);
+
+  // Keep ANS available to math.evaluate() consumers via a shared scope object.
+  useEffect(() => { mathScopeRef.current.ans = ans ?? 0; }, [ans]);
 
   // Keep the imperative bridge in sync with latest state via refs.
   const plotsRef = useRef(plots); plotsRef.current = plots;
@@ -120,21 +210,27 @@ export function CalcProvider({ children }: { children: ReactNode }) {
       getViewport: () => viewportRef.current,
       setViewport,
     });
+  }, [setPlots]);
+
+  // ─── Hydrate persisted layout on mount ────────────────────────────────────
+  useEffect(() => {
+    const parsed = loadLayout();
+    if (parsed.windows) setWindows((prev) => ({ ...prev, ...parsed.windows }));
+    if (parsed.visible) setVisible((prev) => ({ ...prev, ...parsed.visible }));
+    if (parsed.wallpaper && isWallpaper(parsed.wallpaper)) setWallpaper(parsed.wallpaper);
+    if (typeof parsed.casMode === "boolean") setCasMode(parsed.casMode);
+    if (typeof parsed.vintage === "boolean") setVintage(parsed.vintage);
   }, []);
 
-  // Persist window layout
+  // Persist layout snapshot.
   useEffect(() => {
     try {
-      const raw = localStorage.getItem("lvbl_calc_windows_v1");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        setWindows((prev) => ({ ...prev, ...parsed }));
-      }
-    } catch { /* ignore */ }
-  }, []);
-  useEffect(() => {
-    try { localStorage.setItem("lvbl_calc_windows_v1", JSON.stringify(windows)); } catch { /* ignore */ }
-  }, [windows]);
+      const snap: PersistedLayout = { windows, visible, wallpaper, casMode, vintage };
+      localStorage.setItem(STORAGE_LAYOUT, JSON.stringify(snap));
+    } catch (e) {
+      console.warn("[store] failed to persist layout:", e);
+    }
+  }, [windows, visible, wallpaper, casMode, vintage]);
 
   const registerInputRef = useCallback((el: HTMLInputElement | null) => { inputRef.current = el; }, []);
 
@@ -154,6 +250,8 @@ export function CalcProvider({ children }: { children: ReactNode }) {
 
   const pushHistory = useCallback((h: { input: string; output: string }) => {
     setHistory((prev) => [...prev.slice(-49), h]);
+    const n = Number(h.output);
+    if (Number.isFinite(n)) setAns(n);
   }, []);
 
   const focusWindow = useCallback((k: PanelKey) => {
@@ -186,17 +284,49 @@ export function CalcProvider({ children }: { children: ReactNode }) {
         expr: "x",
       },
     ]);
-  }, []);
+  }, [setPlots]);
 
   const setWindow = useCallback((k: PanelKey, patch: Partial<WinRect>) => {
     setWindows((prev) => ({ ...prev, [k]: { ...prev[k], ...patch } }));
   }, []);
 
+  const exportState = useCallback(() => {
+    return JSON.stringify({
+      _version: 1,
+      _app: "neograph",
+      _exportedAt: new Date().toISOString(),
+      plots, viewport, visible, windows, wallpaper, casMode, vintage, graphParams,
+    }, null, 2);
+  }, [plots, viewport, visible, windows, wallpaper, casMode, vintage, graphParams]);
+
+  const importState = useCallback((json: string): boolean => {
+    try {
+      const o = JSON.parse(json);
+      if (!o || typeof o !== "object" || o._app !== "neograph") return false;
+      if (Array.isArray(o.plots)) setPlots(o.plots);
+      if (o.viewport) setViewport(o.viewport);
+      if (o.visible) setVisible((prev) => ({ ...prev, ...o.visible }));
+      if (o.windows) setWindows((prev) => ({ ...prev, ...o.windows }));
+      if (o.wallpaper && isWallpaper(o.wallpaper)) setWallpaper(o.wallpaper);
+      if (typeof o.casMode === "boolean") setCasMode(o.casMode);
+      if (typeof o.vintage === "boolean") setVintage(o.vintage);
+      if (o.graphParams) setGraphParams((prev) => ({ ...prev, ...o.graphParams }));
+      return true;
+    } catch (e) {
+      console.warn("[store] import failed:", e);
+      return false;
+    }
+  }, [setPlots]);
+
   return (
     <Ctx.Provider value={{
       expression, setExpression, insertAtCursor, registerInputRef,
       history, pushHistory,
+      ans, setAns, mathScope: mathScopeRef.current,
       plots, setPlots, addPlot,
+      undoPlots, redoPlots,
+      canUndoPlots: undoStack.current.length > 0 && undoTick >= 0,
+      canRedoPlots: redoStack.current.length > 0 && undoTick >= 0,
       viewport, setViewport,
       visible, toggleVisible, showPanel,
       casMode, setCasMode,
@@ -204,6 +334,7 @@ export function CalcProvider({ children }: { children: ReactNode }) {
       windows, setWindow, focusWindow,
       wallpaper, setWallpaper,
       graphParams, setGraphParam,
+      exportState, importState,
     }}>
       {children}
     </Ctx.Provider>
