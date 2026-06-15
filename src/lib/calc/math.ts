@@ -2,16 +2,19 @@ import { create, all } from "mathjs";
 
 export const math = create(all, { number: "number" });
 
-export type PlotKind = "explicit" | "parametric" | "polar";
+export type PlotKind = "explicit" | "parametric" | "polar" | "implicit" | "slope" | "vector";
 
 export interface PlotExpr {
   id: string;
   kind: PlotKind;
   enabled: boolean;
   color: string;
-  // explicit: y = f(x)  -> expr
-  // parametric: x(t), y(t) -> expr "x_t", "y_t"; range [tMin,tMax]
-  // polar: r(θ) -> expr, range [tMin,tMax]
+  // explicit: y = f(x)         → expr
+  // parametric: x(t), y(t)     → expr, expr2; range [tMin,tMax]
+  // polar: r(θ)                → expr; range [tMin,tMax]
+  // implicit: f(x,y) = 0       → expr
+  // slope: dy/dx = f(x,y)      → expr
+  // vector: <P(x,y), Q(x,y)>   → expr (P), expr2 (Q)
   expr: string;
   expr2?: string;
   tMin?: number;
