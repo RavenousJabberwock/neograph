@@ -67,6 +67,7 @@ const PANELS: PanelDef[] = [
   { key: "notepad",   title: "NOTEPAD",               accent: "amber",   render: () => <NotepadPanel /> },
   { key: "plot3d",    title: "3D · z = f(x,y)",       accent: "magenta", render: () => <Plot3DPanel /> },
   { key: "numerics",  title: "NUMERICS · ODE / ∫ / ROOT", accent: "cyan", render: () => <NumericsPanel /> },
+  { key: "academy",   title: "ACADEMY · K → POSTGRAD",   accent: "amber",   render: () => <AcademyPanel /> },
 ];
 
 function Index() {
