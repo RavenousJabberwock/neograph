@@ -9,12 +9,16 @@
  * ------------------------------------------------------------------
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Plus, X, Download, Upload, Search, Pencil } from "lucide-react";
+import { Plus, X, Download, Upload, Search, Pencil, Eye, Code2 } from "lucide-react";
 import { SEED_TABS } from "@/lib/calc/seed-notes";
+import { MarkdownView } from "@/components/calc/MarkdownView";
+import { isMarkdownName } from "@/lib/calc/markdown";
 
 interface Tab { id: string; name: string; content: string }
 
 const STORE_KEY = "lvbl_notepad_v1";
+/** Per-tab view-mode preference (rendered vs raw). Not persisted across reloads. */
+type ViewMode = "render" | "edit";
 
 /** Load saved tabs from localStorage, or seed bundled docs on first launch. */
 function load(): { tabs: Tab[]; activeId: string } {
@@ -40,6 +44,8 @@ export function NotepadPanel() {
   const [findText, setFindText] = useState("");
   const [replaceText, setReplaceText] = useState("");
   const [matchCount, setMatchCount] = useState(0);
+  // Per-tab view mode. Defaults to "render" for .md files, "edit" for the rest.
+  const [viewModes, setViewModes] = useState<Record<string, ViewMode>>({});
   const taRef = useRef<HTMLTextAreaElement | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -48,6 +54,10 @@ export function NotepadPanel() {
   }, [tabs, activeId]);
 
   const active = tabs.find((t) => t.id === activeId) ?? tabs[0];
+
+  // If the user hasn't explicitly toggled this tab, default .md → render, else → edit.
+  const effectiveMode: ViewMode =
+    viewModes[active.id] ?? (isMarkdownName(active.name) ? "render" : "edit");
 
   const updateActive = (patch: Partial<Tab>) =>
     setTabs((prev) => prev.map((t) => (t.id === active.id ? { ...t, ...patch } : t)));
@@ -163,6 +173,16 @@ export function NotepadPanel() {
         <input ref={fileRef} type="file" accept=".txt,.md,.log,.csv,.json" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) loadTab(f); e.target.value = ""; }} />
         <button className="pill-btn !text-[0.6rem]" data-active={findOpen} onClick={() => setFindOpen((v) => !v)} title="Find / Replace (⌘F)"><Search size={10} /> find</button>
         <button className="pill-btn !text-[0.6rem]" onClick={() => { setRenamingId(active.id); setRenameValue(active.name); }}><Pencil size={10} /> rename</button>
+        {isMarkdownName(active.name) && (
+          <button
+            className="pill-btn !text-[0.6rem]"
+            data-active={effectiveMode === "render"}
+            onClick={() => setViewModes((m) => ({ ...m, [active.id]: effectiveMode === "render" ? "edit" : "render" }))}
+            title="Toggle Markdown render (⌘E)"
+          >
+            {effectiveMode === "render" ? <><Code2 size={10} /> source</> : <><Eye size={10} /> render</>}
+          </button>
+        )}
         <span className="ml-auto text-[0.55rem] tracking-widest text-muted-foreground tabular-nums">
           {stats.lines} L · {stats.words} W · {stats.chars} C
         </span>
@@ -178,15 +198,19 @@ export function NotepadPanel() {
         </div>
       )}
 
-      <textarea
-        ref={taRef}
-        spellCheck={false}
-        className="flex-1 min-h-0 bg-[oklch(0.13_0.025_250)] text-foreground p-3 font-mono text-[0.78rem] leading-relaxed outline-none resize-none"
-        value={active.content}
-        onChange={(e) => updateActive({ content: e.target.value })}
-        onKeyDown={onKeyDown}
-        placeholder="start typing…"
-      />
+      {effectiveMode === "render" ? (
+        <MarkdownView source={active.content} />
+      ) : (
+        <textarea
+          ref={taRef}
+          spellCheck={false}
+          className="flex-1 min-h-0 bg-[oklch(0.13_0.025_250)] text-foreground p-3 font-mono text-[0.78rem] leading-relaxed outline-none resize-none"
+          value={active.content}
+          onChange={(e) => updateActive({ content: e.target.value })}
+          onKeyDown={onKeyDown}
+          placeholder="start typing…"
+        />
+      )}
     </div>
   );
 }
