@@ -39,13 +39,13 @@ function Workstation() {
     <div className="flex flex-col h-screen w-screen">
       <TopBar onToggleSidebar={() => setSidebarOpen((v) => !v)} sidebarOpen={sidebarOpen} />
       <div className="flex-1 min-h-0 p-2">
-        <PanelGroup direction="horizontal" className="gap-0">
+        <PanelGroup orientation="horizontal" className="gap-0">
           {sidebarOpen && (
             <>
               <Panel defaultSize={16} minSize={12} maxSize={28}>
                 <WorkspaceSidebar />
               </Panel>
-              <PanelResizeHandle className="resize-handle" />
+              <Separator className="resize-handle horizontal" />
             </>
           )}
 
@@ -54,30 +54,30 @@ function Workstation() {
               <Panel defaultSize={26} minSize={18}>
                 <CalculatorPanel />
               </Panel>
-              {anyRight && <PanelResizeHandle className="resize-handle" />}
+              {anyRight && <Separator className="resize-handle horizontal" />}
             </>
           )}
 
           {anyRight && (
             <Panel defaultSize={58} minSize={30}>
-              <PanelGroup direction="vertical">
+              <PanelGroup orientation="vertical">
                 {visible.graph && (
                   <>
                     <Panel defaultSize={62} minSize={25}>
                       <GraphPanel />
                     </Panel>
-                    {(visible.table || visible.cas) && <PanelResizeHandle className="resize-handle" />}
+                    {(visible.table || visible.cas) && <Separator className="resize-handle horizontal" />}
                   </>
                 )}
                 {(visible.table || visible.cas) && (
                   <Panel defaultSize={38} minSize={20}>
-                    <PanelGroup direction="horizontal">
+                    <PanelGroup orientation="horizontal">
                       {visible.table && (
                         <>
                           <Panel defaultSize={50} minSize={25}>
                             <TablePanel />
                           </Panel>
-                          {visible.cas && <PanelResizeHandle className="resize-handle" />}
+                          {visible.cas && <Separator className="resize-handle horizontal" />}
                         </>
                       )}
                       {visible.cas && (
