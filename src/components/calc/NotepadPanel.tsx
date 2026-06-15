@@ -9,12 +9,16 @@
  * ------------------------------------------------------------------
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Plus, X, Download, Upload, Search, Pencil } from "lucide-react";
+import { Plus, X, Download, Upload, Search, Pencil, Eye, Code2 } from "lucide-react";
 import { SEED_TABS } from "@/lib/calc/seed-notes";
+import { MarkdownView } from "@/components/calc/MarkdownView";
+import { isMarkdownName } from "@/lib/calc/markdown";
 
 interface Tab { id: string; name: string; content: string }
 
 const STORE_KEY = "lvbl_notepad_v1";
+/** Per-tab view-mode preference (rendered vs raw). Not persisted across reloads. */
+type ViewMode = "render" | "edit";
 
 /** Load saved tabs from localStorage, or seed bundled docs on first launch. */
 function load(): { tabs: Tab[]; activeId: string } {
@@ -40,6 +44,8 @@ export function NotepadPanel() {
   const [findText, setFindText] = useState("");
   const [replaceText, setReplaceText] = useState("");
   const [matchCount, setMatchCount] = useState(0);
+  // Per-tab view mode. Defaults to "render" for .md files, "edit" for the rest.
+  const [viewModes, setViewModes] = useState<Record<string, ViewMode>>({});
   const taRef = useRef<HTMLTextAreaElement | null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
