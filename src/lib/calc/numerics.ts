@@ -4,6 +4,19 @@
 
 import { math } from "./math";
 
+// Centralised tolerance + iteration constants so callers don't sprinkle
+// magic numbers. Tune here; every algorithm below references these.
+export const TOL = {
+  newton: 1e-10,
+  brent: 1e-12,
+  ode: 1e-6,
+  quadrature: 1e-9,
+  limit: 1e-9,
+  poly: 1e-10,
+  derivativeH: 1e-7,
+  zero: 1e-14,
+} as const;
+
 type Scope = Record<string, number>;
 
 export function compileFn(expr: string, vars: string[] = ["x"]) {
@@ -224,11 +237,12 @@ function polyCoeffs(expr: string, v: string): number[] | null {
   for (let i = 0; i < stripped.length; i++) {
     const ch = stripped[i];
     if (ch === "(") depth++;
-    else if (ch === ")") depth--;
+    else if (ch === ")") { depth--; if (depth < 0) return null; }
     if (depth === 0 && (ch === "+" || ch === "-") && i !== 0 && stripped[i - 1] !== "*" && stripped[i - 1] !== "/" && stripped[i - 1] !== "^") {
       parts.push(buf); buf = ch === "-" ? "-" : "";
     } else buf += ch;
   }
+  if (depth !== 0) return null; // unbalanced parens
   if (buf) parts.push(buf);
   const out: number[] = [];
   for (const t of parts) {

@@ -2,12 +2,12 @@ import { useCalc } from "@/lib/calc/store";
 import { math, PLOT_COLORS, defaultViewport, type PlotExpr } from "@/lib/calc/math";
 import { bindBridge } from "@/lib/calc/bridge";
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Download, Plus, Trash2, ZoomIn, ZoomOut, Crosshair, Play, Eye, EyeOff } from "lucide-react";
+import { Download, Plus, Trash2, ZoomIn, ZoomOut, Crosshair, Play, Eye, EyeOff, Undo2, Redo2 } from "lucide-react";
 
 interface Hover { x: number; y: number; sx: number; sy: number }
 
 export function GraphPanel() {
-  const { plots, setPlots, addPlot, viewport, setViewport, vintage, setVintage, graphParams, setGraphParam } = useCalc();
+  const { plots, setPlots, addPlot, viewport, setViewport, vintage, setVintage, graphParams, setGraphParam, undoPlots, redoPlots, canUndoPlots, canRedoPlots } = useCalc();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [size, setSize] = useState({ w: 600, h: 360 });
@@ -177,7 +177,11 @@ export function GraphPanel() {
             const x0 = xMin + i * dx, y0 = yMin + j * dy;
             const x1 = x0 + dx, y1 = y0 + dy;
             const seg: Array<[number, number]> = [];
-            const lerp = (a: number, b: number, va: number, vb: number) => a + ((0 - va) / (vb - va)) * (b - a);
+            const lerp = (a: number, b: number, va: number, vb: number) => {
+              const denom = vb - va;
+              if (!Number.isFinite(denom) || Math.abs(denom) < 1e-14) return (a + b) / 2;
+              return a + ((0 - va) / denom) * (b - a);
+            };
             // bottom edge (y0): v00 ↔ v10
             if ((v00 > 0) !== (v10 > 0)) seg.push([lerp(x0, x1, v00, v10), y0]);
             // right edge (x1): v10 ↔ v11
@@ -260,7 +264,14 @@ export function GraphPanel() {
     ctx.shadowBlur = 0;
   }, [plots, viewport, size, progress, graphParams]);
 
-  useEffect(() => { draw(); }, [draw]);
+  // Coalesce redraws into a single rAF — prevents O(N) redraws when sliders
+  // or viewport pans fire many state updates in the same frame.
+  const rafRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(() => { rafRef.current = null; draw(); });
+    return () => { if (rafRef.current !== null) cancelAnimationFrame(rafRef.current); };
+  }, [draw]);
 
   // expose canvas for snapshot / wallpaper / external scripts
   useEffect(() => { bindBridge({ graphCanvas: canvasRef.current }); }, [size.w, size.h]);
@@ -333,6 +344,8 @@ export function GraphPanel() {
       <div className="flex items-center gap-1 px-2 py-1 border-b border-border">
         <span className="text-[0.6rem] tracking-widest text-muted-foreground">VIEWPORT</span>
         <div className="ml-auto flex items-center gap-1">
+          <button className="pill-btn" onClick={undoPlots} disabled={!canUndoPlots} title="Undo plot edit (Ctrl+Z)"><Undo2 size={12} /></button>
+          <button className="pill-btn" onClick={redoPlots} disabled={!canRedoPlots} title="Redo plot edit (Ctrl+Y)"><Redo2 size={12} /></button>
           <button className="pill-btn" onClick={() => zoom(1 / 1.3)} title="Zoom in"><ZoomIn size={12} /></button>
           <button className="pill-btn" onClick={() => zoom(1.3)} title="Zoom out"><ZoomOut size={12} /></button>
           <button className="pill-btn" onClick={() => setViewport(defaultViewport)} title="Reset"><Crosshair size={12} /></button>

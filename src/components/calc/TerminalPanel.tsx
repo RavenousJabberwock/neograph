@@ -23,7 +23,9 @@ export function TerminalPanel() {
   const [input, setInput] = useState("");
   const [history, setHistory] = useState<string[]>([]);
   const [histIdx, setHistIdx] = useState<number>(-1);
-  const scopeRef = useRef<Record<string, unknown>>({});
+  // Persistent per-session script scope. Seeded with ans=0 so `= ans + 1` works
+  // before any prior evaluation.
+  const scopeRef = useRef<Record<string, unknown>>({ ans: 0 });
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 

@@ -1,6 +1,12 @@
+/**
+ * FloatingWindow — drag/resize chrome wrapping every panel.
+ * Uses ref-based pointer handlers + useEffect cleanup so listeners can never
+ * outlive the component (prevents the "phantom drag" memory leak that occurs
+ * when a window is closed mid-drag).
+ */
 import { useCalc, type PanelKey } from "@/lib/calc/store";
 import { X, Minus } from "lucide-react";
-import { useRef, type ReactNode, type PointerEvent as RPE } from "react";
+import { useCallback, useEffect, useRef, type ReactNode, type PointerEvent as RPE } from "react";
 
 interface Props {
   panelKey: PanelKey;
@@ -14,33 +20,40 @@ export function FloatingWindow({ panelKey, title, accent = "cyan", children }: P
   const w = windows[panelKey];
   const dragRef = useRef<{ mode: "move" | "resize"; startX: number; startY: number; rect: typeof w } | null>(null);
 
-  const onPointerMove = (e: PointerEvent) => {
+  // Stable handlers stored in refs so add/removeEventListener pair up exactly.
+  const moveHandlerRef = useRef<(e: PointerEvent) => void>(() => {});
+  const upHandlerRef = useRef<() => void>(() => {});
+
+  const endDrag = useCallback(() => {
+    dragRef.current = null;
+    window.removeEventListener("pointermove", moveHandlerRef.current);
+    window.removeEventListener("pointerup", upHandlerRef.current);
+    window.removeEventListener("pointercancel", upHandlerRef.current);
+  }, []);
+
+  // Re-bind handlers whenever inputs change so they close over the latest rect.
+  moveHandlerRef.current = (e: PointerEvent) => {
     const d = dragRef.current; if (!d) return;
     const dx = e.clientX - d.startX;
     const dy = e.clientY - d.startY;
     if (d.mode === "move") {
-      setWindow(panelKey, {
-        x: Math.max(0, d.rect.x + dx),
-        y: Math.max(0, d.rect.y + dy),
-      });
+      setWindow(panelKey, { x: Math.max(0, d.rect.x + dx), y: Math.max(0, d.rect.y + dy) });
     } else {
-      setWindow(panelKey, {
-        w: Math.max(240, d.rect.w + dx),
-        h: Math.max(160, d.rect.h + dy),
-      });
+      setWindow(panelKey, { w: Math.max(240, d.rect.w + dx), h: Math.max(160, d.rect.h + dy) });
     }
   };
-  const onPointerUp = () => {
-    dragRef.current = null;
-    window.removeEventListener("pointermove", onPointerMove);
-    window.removeEventListener("pointerup", onPointerUp);
-  };
+  upHandlerRef.current = endDrag;
+
+  // Failsafe: if the component unmounts mid-drag, kill listeners.
+  useEffect(() => endDrag, [endDrag]);
+
   const startDrag = (mode: "move" | "resize", e: RPE) => {
     e.preventDefault();
     focusWindow(panelKey);
     dragRef.current = { mode, startX: e.clientX, startY: e.clientY, rect: { ...w } };
-    window.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointerup", onPointerUp);
+    window.addEventListener("pointermove", moveHandlerRef.current);
+    window.addEventListener("pointerup", upHandlerRef.current);
+    window.addEventListener("pointercancel", upHandlerRef.current);
   };
 
   if (w.min) {
