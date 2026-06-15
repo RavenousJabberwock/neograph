@@ -37,6 +37,7 @@ export type PanelKey =
   | "calc" | "graph" | "table" | "cas"
   | "ide" | "paint" | "stats" | "matrix" | "gsolve" | "constants"
   | "terminal" | "radio" | "notepad" | "plot3d" | "numerics"
+  | "academy"
   | "workspace";
 
 export interface GraphParams { a: number; b: number; c: number; d: number }
