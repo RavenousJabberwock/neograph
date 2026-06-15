@@ -367,7 +367,7 @@ export function AcademyPanel() {
         })}
       </aside>
 
-      <LessonView lesson={lesson} progress={progress} setProgress={setProgress} />
+      <LessonView lesson={lesson} stage={stage} progress={progress} setProgress={setProgress} />
     </div>
   );
 }
