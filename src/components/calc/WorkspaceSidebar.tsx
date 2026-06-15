@@ -33,10 +33,8 @@ export function WorkspaceSidebar() {
   const [name, setName] = useState("default");
 
   const save = () => {
-    const next = {
-      ...workspaces,
-      [name]: { name, data: { plots, viewport, visible, casMode, vintage } } satisfies Workspace as Workspace,
-    };
+    const ws: Workspace = { name, data: { plots, viewport, visible, casMode, vintage } };
+    const next = { ...workspaces, [name]: ws };
     setWorkspaces(next); saveAll(next);
   };
   const load = (n: string) => {
