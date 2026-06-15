@@ -21,6 +21,7 @@ import { RadioPanel } from "@/components/calc/RadioPanel";
 import { NotepadPanel } from "@/components/calc/NotepadPanel";
 import { Plot3DPanel } from "@/components/calc/Plot3DPanel";
 import { NumericsPanel } from "@/components/calc/NumericsPanel";
+import { AcademyPanel } from "@/components/calc/AcademyPanel";
 import { RadioProvider } from "@/lib/calc/radio-context";
 import { RadioMiniDock } from "@/components/calc/RadioMiniDock";
 import { HelpDialog } from "@/components/calc/HelpDialog";
