@@ -42,51 +42,47 @@ export function TablePanel() {
   };
 
   return (
-    <div className="panel">
-      <div className="panel-header">
-        <span className="panel-title-dot" />
-        <span>Table View</span>
+    <div className="p-3 flex flex-col gap-2 h-full">
+      <div className="flex items-center">
+        <span className="text-[0.6rem] tracking-widest text-muted-foreground">TABLE</span>
         <button className="pill-btn ml-auto" onClick={exportCsv} disabled={!active}>
           <Download size={12} />CSV
         </button>
       </div>
-      <div className="panel-body p-3 flex flex-col gap-2">
-        <div className="grid grid-cols-2 gap-2">
-          <label className="text-[0.6rem] tracking-widest text-muted-foreground col-span-2">CURVE</label>
-          <select className="field col-span-2" value={active?.id ?? ""} onChange={(e) => setSelected(e.target.value)}>
-            {explicit.length === 0 && <option value="">No explicit curves</option>}
-            {explicit.map((p) => <option key={p.id} value={p.id}>{p.expr}</option>)}
-          </select>
-          <div>
-            <div className="text-[0.6rem] tracking-widest text-muted-foreground mb-1">X MIN</div>
-            <input type="number" className="field" value={xMin} onChange={(e) => setXMin(Number(e.target.value))} />
-          </div>
-          <div>
-            <div className="text-[0.6rem] tracking-widest text-muted-foreground mb-1">X MAX</div>
-            <input type="number" className="field" value={xMax} onChange={(e) => setXMax(Number(e.target.value))} />
-          </div>
-          <div className="col-span-2">
-            <div className="text-[0.6rem] tracking-widest text-muted-foreground mb-1">STEP</div>
-            <input type="number" step="0.1" className="field" value={step} onChange={(e) => setStep(Number(e.target.value))} />
-          </div>
+      <div className="grid grid-cols-2 gap-2">
+        <select className="field col-span-2 !py-1 text-[0.72rem]" value={active?.id ?? ""} onChange={(e) => setSelected(e.target.value)}>
+          {explicit.length === 0 && <option value="">No explicit curves</option>}
+          {explicit.map((p) => <option key={p.id} value={p.id}>{p.expr}</option>)}
+        </select>
+        <div>
+          <div className="text-[0.55rem] tracking-widest text-muted-foreground mb-0.5">X MIN</div>
+          <input type="number" className="field !py-1 text-[0.72rem]" value={xMin} onChange={(e) => setXMin(Number(e.target.value))} />
         </div>
+        <div>
+          <div className="text-[0.55rem] tracking-widest text-muted-foreground mb-0.5">X MAX</div>
+          <input type="number" className="field !py-1 text-[0.72rem]" value={xMax} onChange={(e) => setXMax(Number(e.target.value))} />
+        </div>
+        <div className="col-span-2">
+          <div className="text-[0.55rem] tracking-widest text-muted-foreground mb-0.5">STEP</div>
+          <input type="number" step="0.1" className="field !py-1 text-[0.72rem]" value={step} onChange={(e) => setStep(Number(e.target.value))} />
+        </div>
+      </div>
 
-        <div className="flex-1 min-h-0 overflow-auto rounded-md border border-border">
-          <table className="w-full text-[0.72rem] font-mono">
-            <thead className="sticky top-0 bg-[oklch(0.22_0.03_250)] text-muted-foreground">
-              <tr><th className="text-left px-3 py-1.5">X</th><th className="text-left px-3 py-1.5">Y</th></tr>
-            </thead>
-            <tbody>
-              {rows.map((r, i) => (
-                <tr key={i} className={i % 2 ? "bg-[oklch(0.2_0.03_250)]" : ""}>
-                  <td className="px-3 py-0.5 neon-text-amber">{r.x}</td>
-                  <td className="px-3 py-0.5 neon-text">{r.y}</td>
-                </tr>
-              ))}
-              {rows.length === 0 && <tr><td colSpan={2} className="px-3 py-4 text-center text-muted-foreground">No data</td></tr>}
-            </tbody>
-          </table>
-        </div>
+      <div className="flex-1 min-h-0 overflow-auto rounded-md border border-border">
+        <table className="w-full text-[0.72rem] font-mono">
+          <thead className="sticky top-0 bg-[oklch(0.22_0.03_250)] text-muted-foreground">
+            <tr><th className="text-left px-3 py-1.5">X</th><th className="text-left px-3 py-1.5">Y</th></tr>
+          </thead>
+          <tbody>
+            {rows.map((r, i) => (
+              <tr key={i} className={i % 2 ? "bg-[oklch(0.2_0.03_250)]" : ""}>
+                <td className="px-3 py-0.5 neon-text-amber">{r.x}</td>
+                <td className="px-3 py-0.5 neon-text">{r.y}</td>
+              </tr>
+            ))}
+            {rows.length === 0 && <tr><td colSpan={2} className="px-3 py-4 text-center text-muted-foreground">No data</td></tr>}
+          </tbody>
+        </table>
       </div>
     </div>
   );

@@ -1,7 +1,12 @@
-import { createContext, useContext, useState, useCallback, type ReactNode, useRef } from "react";
+import { createContext, useContext, useState, useCallback, type ReactNode, useRef, useEffect } from "react";
 import { defaultViewport, PLOT_COLORS, type PlotExpr, type Viewport } from "./math";
 
-export type PanelKey = "calc" | "graph" | "table" | "cas" | "workspace";
+export type PanelKey =
+  | "calc" | "graph" | "table" | "cas"
+  | "ide" | "paint" | "stats" | "matrix" | "gsolve" | "constants"
+  | "workspace";
+
+export interface WinRect { x: number; y: number; w: number; h: number; z: number; min?: boolean }
 
 interface CalcState {
   expression: string;
@@ -17,13 +22,31 @@ interface CalcState {
   setViewport: (v: Viewport) => void;
   visible: Record<PanelKey, boolean>;
   toggleVisible: (k: PanelKey) => void;
+  showPanel: (k: PanelKey) => void;
   casMode: boolean;
   setCasMode: (b: boolean) => void;
   vintage: boolean;
   setVintage: (b: boolean) => void;
+  windows: Record<PanelKey, WinRect>;
+  setWindow: (k: PanelKey, patch: Partial<WinRect>) => void;
+  focusWindow: (k: PanelKey) => void;
 }
 
 const Ctx = createContext<CalcState | null>(null);
+
+const DEFAULT_WINDOWS: Record<PanelKey, WinRect> = {
+  calc:      { x:  20, y:  20, w: 360, h: 540, z: 1 },
+  graph:     { x: 400, y:  20, w: 720, h: 460, z: 2 },
+  table:     { x: 400, y: 500, w: 360, h: 320, z: 3 },
+  cas:       { x: 780, y: 500, w: 420, h: 320, z: 4 },
+  ide:       { x: 140, y: 580, w: 560, h: 360, z: 5 },
+  paint:     { x: 200, y: 120, w: 520, h: 380, z: 6 },
+  stats:     { x: 740, y: 120, w: 480, h: 380, z: 7 },
+  matrix:    { x: 260, y: 200, w: 520, h: 400, z: 8 },
+  gsolve:    { x: 820, y: 200, w: 380, h: 360, z: 9 },
+  constants: { x: 100, y: 260, w: 360, h: 420, z: 10 },
+  workspace: { x:  20, y: 580, w: 280, h: 360, z: 11 },
+};
 
 export function CalcProvider({ children }: { children: ReactNode }) {
   const [expression, setExpression] = useState("");
@@ -36,13 +59,28 @@ export function CalcProvider({ children }: { children: ReactNode }) {
   const [viewport, setViewport] = useState<Viewport>(defaultViewport);
   const [visible, setVisible] = useState<Record<PanelKey, boolean>>({
     calc: true, graph: true, table: true, cas: true, workspace: true,
+    ide: false, paint: false, stats: false, matrix: false, gsolve: false, constants: false,
   });
   const [casMode, setCasMode] = useState(false);
   const [vintage, setVintage] = useState(false);
+  const [windows, setWindows] = useState<Record<PanelKey, WinRect>>(DEFAULT_WINDOWS);
+  const zCounter = useRef(50);
 
-  const registerInputRef = useCallback((el: HTMLInputElement | null) => {
-    inputRef.current = el;
+  // Persist window layout
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("lvbl_calc_windows_v1");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setWindows((prev) => ({ ...prev, ...parsed }));
+      }
+    } catch { /* ignore */ }
   }, []);
+  useEffect(() => {
+    try { localStorage.setItem("lvbl_calc_windows_v1", JSON.stringify(windows)); } catch { /* ignore */ }
+  }, [windows]);
+
+  const registerInputRef = useCallback((el: HTMLInputElement | null) => { inputRef.current = el; }, []);
 
   const insertAtCursor = useCallback((s: string) => {
     const el = inputRef.current;
@@ -62,9 +100,24 @@ export function CalcProvider({ children }: { children: ReactNode }) {
     setHistory((prev) => [...prev.slice(-49), h]);
   }, []);
 
-  const toggleVisible = useCallback((k: PanelKey) => {
-    setVisible((v) => ({ ...v, [k]: !v[k] }));
+  const focusWindow = useCallback((k: PanelKey) => {
+    zCounter.current += 1;
+    const z = zCounter.current;
+    setWindows((prev) => ({ ...prev, [k]: { ...prev[k], z, min: false } }));
   }, []);
+
+  const toggleVisible = useCallback((k: PanelKey) => {
+    setVisible((v) => {
+      const next = { ...v, [k]: !v[k] };
+      if (next[k]) focusWindow(k);
+      return next;
+    });
+  }, [focusWindow]);
+
+  const showPanel = useCallback((k: PanelKey) => {
+    setVisible((v) => ({ ...v, [k]: true }));
+    focusWindow(k);
+  }, [focusWindow]);
 
   const addPlot = useCallback(() => {
     setPlots((prev) => [
@@ -79,15 +132,20 @@ export function CalcProvider({ children }: { children: ReactNode }) {
     ]);
   }, []);
 
+  const setWindow = useCallback((k: PanelKey, patch: Partial<WinRect>) => {
+    setWindows((prev) => ({ ...prev, [k]: { ...prev[k], ...patch } }));
+  }, []);
+
   return (
     <Ctx.Provider value={{
       expression, setExpression, insertAtCursor, registerInputRef,
       history, pushHistory,
       plots, setPlots, addPlot,
       viewport, setViewport,
-      visible, toggleVisible,
+      visible, toggleVisible, showPanel,
       casMode, setCasMode,
       vintage, setVintage,
+      windows, setWindow, focusWindow,
     }}>
       {children}
     </Ctx.Provider>

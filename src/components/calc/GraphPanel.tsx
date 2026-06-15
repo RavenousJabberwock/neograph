@@ -219,10 +219,9 @@ export function GraphPanel() {
   };
 
   return (
-    <div className="panel">
-      <div className="panel-header">
-        <span className="panel-title-dot" />
-        <span>Graph Engine</span>
+    <div className="flex flex-col h-full">
+      <div className="flex items-center gap-1 px-2 py-1 border-b border-border">
+        <span className="text-[0.6rem] tracking-widest text-muted-foreground">VIEWPORT</span>
         <div className="ml-auto flex items-center gap-1">
           <button className="pill-btn" onClick={() => zoom(1 / 1.3)} title="Zoom in"><ZoomIn size={12} /></button>
           <button className="pill-btn" onClick={() => zoom(1.3)} title="Zoom out"><ZoomOut size={12} /></button>
@@ -233,7 +232,7 @@ export function GraphPanel() {
           <button className="pill-btn" onClick={exportPng}><Download size={12} />PNG</button>
         </div>
       </div>
-      <div className="panel-body flex">
+      <div className="flex flex-1 min-h-0">
         <div
           ref={wrapRef}
           className="relative flex-1 cursor-crosshair select-none"
@@ -257,9 +256,9 @@ export function GraphPanel() {
           </div>
         </div>
 
-        <div className="w-64 shrink-0 border-l border-border bg-[oklch(0.2_0.03_250)] flex flex-col">
+        <div className="w-56 shrink-0 border-l border-border bg-[oklch(0.2_0.03_250)] flex flex-col">
           <div className="px-3 py-2 flex items-center justify-between border-b border-border">
-            <span className="text-[0.65rem] tracking-[0.2em] text-muted-foreground">CURVES</span>
+            <span className="text-[0.6rem] tracking-[0.2em] text-muted-foreground">CURVES</span>
             <button className="pill-btn" onClick={addPlot}><Plus size={12} />ADD</button>
           </div>
           <div className="flex-1 overflow-auto p-2 space-y-2">
