@@ -21,9 +21,13 @@ import {
   RotateCcw, ExternalLink, Lightbulb,
 } from "lucide-react";
 import { STAGES, type Exercise, type Lesson, type Stage, findLesson } from "@/lib/calc/academy-content";
-import { MarkdownView } from "./MarkdownView";
+import { renderMarkdown } from "@/lib/calc/markdown";
 import { math } from "@/lib/calc/math";
 import { useCalc } from "@/lib/calc/store";
+
+function MD({ source, className = "" }: { source: string; className?: string }) {
+  return <div className={`md-inline ${className}`} dangerouslySetInnerHTML={{ __html: renderMarkdown(source) }} />;
+}
 
 const PROGRESS_KEY = "lvbl_academy_progress_v1";
 const SELECT_KEY   = "lvbl_academy_last_v1";
