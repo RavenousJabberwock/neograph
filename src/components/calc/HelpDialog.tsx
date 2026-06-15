@@ -216,6 +216,32 @@ export function HelpDialog() {
                 </div>
               </section>
             )}
+
+            {section.furtherAcademy && section.furtherAcademy.length > 0 && (
+              <section className="space-y-2">
+                <h3 className="text-[0.65rem] tracking-widest text-[var(--color-amber)] flex items-center gap-1.5">
+                  <GraduationCap size={12} /> CONTINUE LEARNING · ACADEMY
+                </h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {section.furtherAcademy.map((id) => {
+                    const hit = findLesson(id); if (!hit) return null;
+                    return (
+                      <button
+                        key={id}
+                        className="pill-btn !text-[0.62rem]"
+                        onClick={() => { showPanel("academy"); openAcademyLesson(id); setOpen(false); }}
+                        title={`${hit.stage.title} · ${hit.stage.band}`}
+                      >
+                        {hit.lesson.title}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="text-[0.6rem] text-muted-foreground">
+                  Full curriculum: {STAGES.length} stages · {STAGES.reduce((n, s) => n + s.lessons.length, 0)} lessons.
+                </div>
+              </section>
+            )}
           </article>
         </div>
       </div>
