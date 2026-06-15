@@ -1,5 +1,6 @@
 import { useCalc } from "@/lib/calc/store";
 import { math, PLOT_COLORS, defaultViewport, type PlotExpr } from "@/lib/calc/math";
+import { bindBridge } from "@/lib/calc/bridge";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Download, Plus, Trash2, ZoomIn, ZoomOut, Crosshair, Play, Eye, EyeOff } from "lucide-react";
 
@@ -154,6 +155,9 @@ export function GraphPanel() {
   }, [plots, viewport, size, progress]);
 
   useEffect(() => { draw(); }, [draw]);
+
+  // expose canvas for snapshot / wallpaper / external scripts
+  useEffect(() => { bindBridge({ graphCanvas: canvasRef.current }); }, [size.w, size.h]);
 
   // Pan & zoom
   const dragRef = useRef<{ x: number; y: number; vp: typeof viewport } | null>(null);
