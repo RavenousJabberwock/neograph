@@ -1,20 +1,33 @@
+/**
+ * NotepadPanel
+ * ------------------------------------------------------------------
+ * Tabbed plain-text editor with persistence, find/replace, and .txt
+ * import / export. On first open (no saved state) it seeds itself
+ * from `SEED_TABS` (README + quickstart) so new users land on docs.
+ * Subsequent opens restore whatever the user last had — including
+ * any edits made to the seeded README copy.
+ * ------------------------------------------------------------------
+ */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Plus, X, Download, Upload, Search, Pencil } from "lucide-react";
+import { SEED_TABS } from "@/lib/calc/seed-notes";
 
 interface Tab { id: string; name: string; content: string }
 
 const STORE_KEY = "lvbl_notepad_v1";
 
+/** Load saved tabs from localStorage, or seed bundled docs on first launch. */
 function load(): { tabs: Tab[]; activeId: string } {
   try {
     const raw = localStorage.getItem(STORE_KEY);
     if (raw) return JSON.parse(raw);
-  } catch { /* ignore */ }
-  const id = `n_${Date.now()}`;
-  return {
-    tabs: [{ id, name: "scratch.md", content: "# notes\n\nUse this notepad for derivations, todos, or session notes.\nSupports multiple tabs, find/replace, .txt import / export.\n" }],
-    activeId: id,
-  };
+  } catch { /* ignore — fall through to seed */ }
+  const seeded: Tab[] = SEED_TABS.map((s, i) => ({
+    id: `n_seed_${i}_${Date.now()}`,
+    name: s.name,
+    content: s.content,
+  }));
+  return { tabs: seeded, activeId: seeded[0].id };
 }
 
 export function NotepadPanel() {

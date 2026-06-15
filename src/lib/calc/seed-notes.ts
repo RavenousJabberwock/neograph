@@ -10,7 +10,6 @@
  * survives in fully-offline / static deploys.
  * ------------------------------------------------------------------
  */
-// @ts-expect-error - vite ?raw query returns string
 import readme from "../../../README.md?raw";
 
 export interface SeedTab { name: string; content: string }

@@ -41,8 +41,8 @@ export function TopBar({ onToggleSidebar, sidebarOpen }: { onToggleSidebar: () =
       </button>
       <div className="flex items-center gap-2">
         <div className="h-2 w-2 rounded-full bg-[var(--color-amber)] shadow-[0_0_8px_var(--color-amber)]" />
-        <span className="text-xs tracking-[0.3em] uppercase neon-text">Λ-Workstation</span>
-        <span className="text-[0.6rem] tracking-[0.25em] text-muted-foreground hidden xl:inline">v0.2 / CYBERLAB</span>
+        <span className="text-xs tracking-[0.3em] uppercase neon-text">Λ neoGraph</span>
+        <span className="text-[0.6rem] tracking-[0.25em] text-muted-foreground hidden xl:inline">v0.3 · WORKSTATION</span>
       </div>
 
       <div className="mx-3 h-5 w-px bg-border" />

@@ -197,7 +197,7 @@ export function WorkspaceSidebar() {
       </div>
 
       <div className="mt-auto text-[0.55rem] text-muted-foreground tracking-[0.25em] uppercase">
-        v0.2 · sci-fi workstation
+        neoGraph v0.3 · Λ-workstation
       </div>
     </div>
   );

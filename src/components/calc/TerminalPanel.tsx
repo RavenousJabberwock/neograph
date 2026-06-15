@@ -1,3 +1,11 @@
+/**
+ * TerminalPanel
+ * ------------------------------------------------------------------
+ * Cyberpunk REPL with an extensible command registry, history (↑/↓),
+ * and a per-session script scope. Scripts running in the IDE can
+ * extend the terminal at runtime via window.lambda.registerCommand().
+ * ------------------------------------------------------------------
+ */
 import { useEffect, useRef, useState } from "react";
 import { Terminal as TermIcon, Trash2 } from "lucide-react";
 import { listCommands, lookupCommand, registerCommand, type CommandCtx } from "@/lib/calc/commands";
@@ -5,7 +13,7 @@ import { listCommands, lookupCommand, registerCommand, type CommandCtx } from "@
 interface Line { kind: "in" | "out" | "err" | "sys"; text: string }
 
 const HEADER = [
-  "Λ-WORKSTATION TERMINAL  v0.3",
+  "neoGraph · Λ-WORKSTATION TERMINAL  v0.3",
   "type `help` to list commands · ↑/↓ for history · `clear` to wipe",
   "",
 ];
@@ -75,7 +83,7 @@ export function TerminalPanel() {
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-2 px-2 py-1 border-b border-border">
         <TermIcon size={12} className="text-[var(--color-primary)]" />
-        <span className="text-[0.6rem] tracking-widest text-muted-foreground">/dev/cyberlab</span>
+        <span className="text-[0.6rem] tracking-widest text-muted-foreground">/dev/neograph</span>
         <button className="pill-btn ml-auto !text-[0.6rem]" onClick={() => setLines([])}><Trash2 size={10} /> CLR</button>
       </div>
       <div

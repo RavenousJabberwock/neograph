@@ -23,15 +23,21 @@ import { NumericsPanel } from "@/components/calc/NumericsPanel";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Λ-Workstation · Cyberpunk Programmable Calculator" },
-      { name: "description", content: "Cyberpunk multi-window programmable scientific graphing calculator: CAS, ODE/quadrature/root finders, Python IDE, 3D surfaces, matrix decomp, distributions & hypothesis tests, terminal, internet radio, and a tabbed notepad." },
-      { property: "og:title", content: "Λ-Workstation · Cyberpunk Programmable Calculator" },
+      { title: "neoGraph · Λ-Workstation — Cyberpunk Programmable Calculator" },
+      { name: "description", content: "neoGraph is a cyberpunk multi-window programmable scientific graphing calculator: CAS, ODE/quadrature/root finders, Python IDE, 3D surfaces, matrix decomp, distributions & hypothesis tests, terminal, internet radio, and a tabbed notepad." },
+      { property: "og:title", content: "neoGraph · Λ-Workstation" },
       { property: "og:description", content: "Postgrad-grade scientific workstation in the browser." },
     ],
   }),
   component: Index,
 });
 
+// ----------------------------------------------------------------------------
+// Panel registry. Each entry binds a stable PanelKey to its window chrome
+// (title + accent color) and a render function. Adding a new panel: create
+// the component, add its key to `PanelKey` in lib/calc/store.tsx, then drop
+// an entry below — the floating-window manager and sidebar pick it up.
+// ----------------------------------------------------------------------------
 interface PanelDef {
   key: PanelKey;
   title: string;
@@ -50,7 +56,7 @@ const PANELS: PanelDef[] = [
   { key: "matrix",    title: "MATRIX · DECOMP",       accent: "cyan",    render: () => <MatrixPanel /> },
   { key: "gsolve",    title: "G-SOLVE",               accent: "magenta", render: () => <GSolvePanel /> },
   { key: "constants", title: "CONSTANTS",             accent: "amber",   render: () => <ConstantsPanel /> },
-  { key: "terminal",  title: "TERMINAL · /dev/cyberlab", accent: "cyan", render: () => <TerminalPanel /> },
+  { key: "terminal",  title: "TERMINAL · /dev/neograph", accent: "cyan", render: () => <TerminalPanel /> },
   { key: "radio",     title: "RADIO · FOCUS FEEDS",   accent: "amber",   render: () => <RadioPanel /> },
   { key: "notepad",   title: "NOTEPAD",               accent: "amber",   render: () => <NotepadPanel /> },
   { key: "plot3d",    title: "3D · z = f(x,y)",       accent: "magenta", render: () => <Plot3DPanel /> },
