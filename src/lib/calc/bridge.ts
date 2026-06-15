@@ -42,7 +42,8 @@ function freshId(prefix = "p"): string {
   if (c?.randomUUID) return `${prefix}_${c.randomUUID().slice(0, 8)}`;
   const buf = new Uint32Array(2);
   c?.getRandomValues?.(buf);
-  return `${prefix}_${Date.now().toString(36)}${(buf[0] ^ buf[1] ?? Math.random() * 1e9).toString(36).slice(0, 6)}`;
+  const rand = (buf[0] ^ buf[1]) || Math.floor(Math.random() * 1e9);
+  return `${prefix}_${Date.now().toString(36)}${rand.toString(36).slice(0, 6)}`;
 }
 
 // Public API exposed to user scripts (IDE, terminal, Pyodide).
