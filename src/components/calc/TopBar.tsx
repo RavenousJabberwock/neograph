@@ -2,6 +2,7 @@ import { useCalc, type PanelKey } from "@/lib/calc/store";
 import {
   Calculator, LineChart, Table2, Sigma, PanelLeft, Power,
   Code2, Paintbrush, BarChart3, Grid3x3, Crosshair, BookOpen,
+  Terminal as TermIcon, Radio as RadioIcon, NotebookPen, Box, Activity,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -18,14 +19,19 @@ export function TopBar({ onToggleSidebar, sidebarOpen }: { onToggleSidebar: () =
   const items: { key: PanelKey; label: string; icon: React.ComponentType<{ size?: number }> }[] = [
     { key: "calc", label: "CALC", icon: Calculator },
     { key: "graph", label: "GRAPH", icon: LineChart },
+    { key: "plot3d", label: "3D", icon: Box },
     { key: "table", label: "TABLE", icon: Table2 },
     { key: "cas", label: "CAS", icon: Sigma },
+    { key: "numerics", label: "NUM", icon: Activity },
     { key: "ide", label: "IDE", icon: Code2 },
+    { key: "terminal", label: "TERM", icon: TermIcon },
     { key: "paint", label: "PAINT", icon: Paintbrush },
+    { key: "notepad", label: "NOTE", icon: NotebookPen },
     { key: "stats", label: "STATS", icon: BarChart3 },
     { key: "matrix", label: "MATRIX", icon: Grid3x3 },
     { key: "gsolve", label: "G-SOLVE", icon: Crosshair },
     { key: "constants", label: "CONST", icon: BookOpen },
+    { key: "radio", label: "RADIO", icon: RadioIcon },
   ];
 
   return (

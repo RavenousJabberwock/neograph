@@ -4,6 +4,7 @@ import { getGraphSnapshot } from "@/lib/calc/bridge";
 import {
   FolderOpen, Save, FilePlus2, X, Calculator, LineChart, Table2, Sigma,
   Code2, Paintbrush, BarChart3, Grid3x3, Crosshair, BookOpen, Image as ImageIcon, Camera,
+  Terminal as TermIcon, Radio as RadioIcon, NotebookPen, Box, Activity,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -107,16 +108,21 @@ export function WorkspaceSidebar() {
   };
 
   const panelList: { key: PanelKey; label: string; icon: React.ComponentType<{ size?: number }> }[] = [
-    { key: "calc",      label: "Calculator", icon: Calculator },
-    { key: "graph",     label: "Graph",      icon: LineChart },
-    { key: "table",     label: "Table",      icon: Table2 },
-    { key: "cas",       label: "CAS",        icon: Sigma },
-    { key: "ide",       label: "IDE (Python)", icon: Code2 },
-    { key: "paint",     label: "Paint",      icon: Paintbrush },
-    { key: "stats",     label: "Stats / Regression", icon: BarChart3 },
-    { key: "matrix",    label: "Matrix",     icon: Grid3x3 },
-    { key: "gsolve",    label: "G-Solve",    icon: Crosshair },
-    { key: "constants", label: "Constants",  icon: BookOpen },
+    { key: "calc",      label: "Calculator",      icon: Calculator },
+    { key: "graph",     label: "Graph",           icon: LineChart },
+    { key: "plot3d",    label: "3D Surface",      icon: Box },
+    { key: "table",     label: "Table",           icon: Table2 },
+    { key: "cas",       label: "CAS",             icon: Sigma },
+    { key: "numerics",  label: "Numerics",        icon: Activity },
+    { key: "ide",       label: "IDE (multi)",     icon: Code2 },
+    { key: "terminal",  label: "Terminal",        icon: TermIcon },
+    { key: "paint",     label: "Paint",           icon: Paintbrush },
+    { key: "notepad",   label: "Notepad",         icon: NotebookPen },
+    { key: "stats",     label: "Stats / Tests",   icon: BarChart3 },
+    { key: "matrix",    label: "Matrix",          icon: Grid3x3 },
+    { key: "gsolve",    label: "G-Solve",         icon: Crosshair },
+    { key: "constants", label: "Constants",       icon: BookOpen },
+    { key: "radio",     label: "Radio",           icon: RadioIcon },
   ];
 
   return (
