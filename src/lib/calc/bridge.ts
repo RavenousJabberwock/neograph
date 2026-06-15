@@ -1,7 +1,8 @@
 // Cross-panel imperative bridge. Lives outside React so async runtimes
-// (Pyodide, eval'd JS, mini interpreters) can poke at the latest state.
+// (Pyodide, eval'd JS, mini interpreters) can poke at the latest state
+// without re-rendering. Keep the surface area tiny and the contract stable.
 
-import type { PlotExpr, Viewport } from "./math";
+import { safeCompile, PLOT_COLORS, type PlotExpr, type Viewport } from "./math";
 
 type PlotsUpdater = (p: PlotExpr[] | ((prev: PlotExpr[]) => PlotExpr[])) => void;
 
@@ -26,51 +27,61 @@ export function bindBridge(patch: Partial<BridgeState>) {
 }
 
 export function getGraphSnapshot(): string | null {
-  try { return state.graphCanvas?.toDataURL("image/png") ?? null; }
-  catch { return null; }
+  try {
+    return state.graphCanvas?.toDataURL("image/png") ?? null;
+  } catch (e) {
+    console.warn("[bridge] snapshot failed:", e);
+    return null;
+  }
 }
 
-// Public API exposed to user scripts.
+/** Collision-resistant plot ID. Falls back to a high-entropy string when
+ *  crypto.randomUUID is unavailable (very old browsers, sandboxed contexts). */
+function freshId(prefix = "p"): string {
+  const c = (globalThis as { crypto?: Crypto }).crypto;
+  if (c?.randomUUID) return `${prefix}_${c.randomUUID().slice(0, 8)}`;
+  const buf = new Uint32Array(2);
+  c?.getRandomValues?.(buf);
+  return `${prefix}_${Date.now().toString(36)}${(buf[0] ^ buf[1] ?? Math.random() * 1e9).toString(36).slice(0, 6)}`;
+}
+
+// Public API exposed to user scripts (IDE, terminal, Pyodide).
 export const graphApi = {
+  /** Snapshot of all curves currently on the graph. */
   list() {
     return state.getPlots().map((p) => ({
       id: p.id, kind: p.kind, expr: p.expr, expr2: p.expr2 ?? null,
       enabled: p.enabled, color: p.color,
     }));
   },
+  /** Push a new curve. Returns its ID. Throws on syntactically invalid expr. */
   add(expr: string, opts: { kind?: PlotExpr["kind"]; expr2?: string; tMin?: number; tMax?: number; color?: string } = {}) {
-    const id = `p${Date.now().toString(36)}${Math.floor(Math.random() * 999)}`;
+    if (typeof expr !== "string" || !expr.trim()) throw new Error("graph.add: expr must be a non-empty string");
+    if (!safeCompile(expr)) throw new Error(`graph.add: expr did not compile → ${expr}`);
+    if (opts.expr2 && !safeCompile(opts.expr2)) throw new Error(`graph.add: expr2 did not compile → ${opts.expr2}`);
+    const id = freshId("p");
     state.setPlots((prev) => [
       ...prev,
       {
         id, kind: opts.kind ?? "explicit", enabled: true,
-        color: opts.color ?? PALETTE[prev.length % PALETTE.length],
+        color: opts.color ?? PLOT_COLORS[prev.length % PLOT_COLORS.length],
         expr, expr2: opts.expr2, tMin: opts.tMin, tMax: opts.tMax,
       },
     ]);
     return id;
   },
-  remove(id: string) {
-    state.setPlots((prev) => prev.filter((p) => p.id !== id));
-  },
+  remove(id: string) { state.setPlots((prev) => prev.filter((p) => p.id !== id)); },
   clear() { state.setPlots([]); },
   toggle(id: string, on?: boolean) {
     state.setPlots((prev) => prev.map((p) => p.id === id ? { ...p, enabled: on ?? !p.enabled } : p));
   },
   view() { return { ...state.getViewport() }; },
   setView(xMin: number, xMax: number, yMin: number, yMax: number) {
+    if (![xMin, xMax, yMin, yMax].every(Number.isFinite)) throw new Error("graph.setView: all bounds must be finite numbers");
+    if (xMin >= xMax || yMin >= yMax) throw new Error("graph.setView: min must be < max");
     state.setViewport({ xMin, xMax, yMin, yMax });
   },
   snapshot() { return getGraphSnapshot(); },
 };
-
-const PALETTE = [
-  "oklch(0.85 0.18 195)",
-  "oklch(0.82 0.18 78)",
-  "oklch(0.72 0.22 340)",
-  "oklch(0.78 0.18 140)",
-  "oklch(0.75 0.2 30)",
-  "oklch(0.78 0.18 260)",
-];
 
 export type GraphApi = typeof graphApi;
