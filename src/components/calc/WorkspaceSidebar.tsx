@@ -141,6 +141,7 @@ export function WorkspaceSidebar() {
     { key: "gsolve",    label: "G-Solve",         icon: Crosshair },
     { key: "constants", label: "Constants",       icon: BookOpen },
     { key: "radio",     label: "Radio",           icon: RadioIcon },
+    { key: "academy",   label: "Academy",         icon: GraduationCap },
   ];
 
   return (
