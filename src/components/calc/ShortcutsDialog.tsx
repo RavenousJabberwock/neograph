@@ -20,7 +20,7 @@ const BINDINGS: Array<[string, PanelKey, string]> = [
 ];
 
 export function ShortcutsDialog() {
-  const { toggleVisible, showPanel } = useCalc();
+  const { toggleVisible, showPanel, undoPlots, redoPlots } = useCalc();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -30,8 +30,12 @@ export function ShortcutsDialog() {
       const inField = !!t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable);
       if (e.key === "?" && !inField) { e.preventDefault(); setOpen((v) => !v); return; }
       if (e.key === "Escape" && open) { setOpen(false); return; }
-      if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey) return;
+      if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
       const k = e.key.toLowerCase();
+      // Undo/redo
+      if (k === "z" && !e.shiftKey) { e.preventDefault(); undoPlots(); return; }
+      if ((k === "y") || (k === "z" && e.shiftKey)) { e.preventDefault(); redoPlots(); return; }
+      if (e.shiftKey) return;
       const map: Record<string, PanelKey> = {
         g: "graph", t: "terminal", n: "notepad", k: "calc",
         m: "matrix", i: "ide", b: "cas", r: "radio", "3": "plot3d",
@@ -44,7 +48,7 @@ export function ShortcutsDialog() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, showPanel, toggleVisible]);
+  }, [open, showPanel, toggleVisible, undoPlots, redoPlots]);
 
   if (!open) return null;
   return (
