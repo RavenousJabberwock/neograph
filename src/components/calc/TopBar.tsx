@@ -1,6 +1,6 @@
 import { useCalc, type PanelKey } from "@/lib/calc/store";
 import {
-  Calculator, LineChart, Table2, Sigma, PanelLeft, Power,
+  Calculator, LineChart, Table2, Sigma, PanelLeft, Power, Keyboard,
   Code2, Paintbrush, BarChart3, Grid3x3, Crosshair, BookOpen,
   Terminal as TermIcon, Radio as RadioIcon, NotebookPen, Box, Activity,
 } from "lucide-react";
@@ -62,6 +62,13 @@ export function TopBar({ onToggleSidebar, sidebarOpen }: { onToggleSidebar: () =
       </nav>
 
       <div className="ml-auto flex items-center gap-3">
+        <button
+          className="pill-btn"
+          title="Keyboard shortcuts (press ?)"
+          onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "?" }))}
+        >
+          <Keyboard size={12} />
+        </button>
         <div className="text-[0.65rem] tracking-[0.25em] text-muted-foreground">
           CAS: <span className={casMode ? "neon-text" : "text-muted-foreground"}>{casMode ? "ON" : "OFF"}</span>
         </div>
