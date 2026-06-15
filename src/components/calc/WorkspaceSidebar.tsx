@@ -4,6 +4,7 @@ import { getGraphSnapshot } from "@/lib/calc/bridge";
 import {
   FolderOpen, Save, FilePlus2, X, Calculator, LineChart, Table2, Sigma,
   Code2, Paintbrush, BarChart3, Grid3x3, Crosshair, BookOpen, Image as ImageIcon, Camera,
+  Terminal as TermIcon, Radio as RadioIcon, NotebookPen, Box, Activity,
 } from "lucide-react";
 import { useState } from "react";
 
