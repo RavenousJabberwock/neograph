@@ -42,12 +42,14 @@ const EXT: Record<Lang, string> = {
 
 const SAMPLES: Record<Lang, string> = {
   python: `# Generate & push a curve into the Graph window
+# graph.* returns JsProxy values; call .to_py() to get native dict/list.
 import math
 graph.clear()
 graph.add("sin(x)")
 graph.add("sin(x)*cos(2*x)")
-print("plots:", list(graph.list()))
-print("viewport:", dict(graph.view()))
+plots = graph.list().to_py()
+print("plots:", [p["expr"] for p in plots])
+print("viewport:", graph.view().to_py())
 `,
   javascript: `// Push a few curves & zoom in
 graph.clear();
@@ -97,12 +99,14 @@ a*a
 `,
 };
 
-const HELP_PY = `# bridge available as 'graph':
+const HELP_PY = `# bridge available as 'graph' (JS object exposed to Python):
 #   graph.add(expr, kind="explicit")   →  id
-#   graph.list()                       →  [{id,kind,expr,enabled,color}, …]
+#   graph.list()                       →  JsProxy → call .to_py() for [{...}, ...]
 #   graph.clear() / graph.remove(id) / graph.toggle(id, on?)
-#   graph.view()                       →  {xMin,xMax,yMin,yMax}
+#   graph.view()                       →  JsProxy → .to_py() for {xMin,xMax,yMin,yMax}
 #   graph.setView(xmin,xmax,ymin,ymax)
+# Tip: any value returned from graph.* is a JsProxy. Use .to_py() before
+# iterating, indexing with [...], or dict-style access in Python.
 `;
 
 export function IdePanel() {
