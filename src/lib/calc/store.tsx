@@ -304,9 +304,9 @@ export function CalcProvider({ children }: { children: ReactNode }) {
       _version: 1,
       _app: "neograph",
       _exportedAt: new Date().toISOString(),
-      plots, viewport, visible, windows, wallpaper, casMode, vintage, graphParams,
+      plots, viewport, visible, windows, wallpaper, theme, casMode, vintage, graphParams,
     }, null, 2);
-  }, [plots, viewport, visible, windows, wallpaper, casMode, vintage, graphParams]);
+  }, [plots, viewport, visible, windows, wallpaper, theme, casMode, vintage, graphParams]);
 
   const importState = useCallback((json: string): boolean => {
     try {
@@ -317,6 +317,7 @@ export function CalcProvider({ children }: { children: ReactNode }) {
       if (o.visible) setVisible((prev) => ({ ...prev, ...o.visible }));
       if (o.windows) setWindows((prev) => ({ ...prev, ...o.windows }));
       if (o.wallpaper && isWallpaper(o.wallpaper)) setWallpaper(o.wallpaper);
+      if (o.theme && isTheme(o.theme)) { setThemeRaw(o.theme); applyTheme(o.theme); }
       if (typeof o.casMode === "boolean") setCasMode(o.casMode);
       if (typeof o.vintage === "boolean") setVintage(o.vintage);
       if (o.graphParams) setGraphParams((prev) => ({ ...prev, ...o.graphParams }));
@@ -342,6 +343,7 @@ export function CalcProvider({ children }: { children: ReactNode }) {
       vintage, setVintage,
       windows, setWindow, focusWindow,
       wallpaper, setWallpaper,
+      theme, setTheme,
       graphParams, setGraphParam,
       exportState, importState,
     }}>
