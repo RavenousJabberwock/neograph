@@ -317,6 +317,20 @@ const LEARN: Record<Lang, { label: string; href: string }[]> = {
           {status === "loading" ? progress : `${langMeta.real ? "runtime" : "simulated"} · ${status}`}
         </span>
       </div>
+      <div className="flex items-center gap-2 flex-wrap text-[0.6rem] tracking-wider text-muted-foreground border-b border-border pb-1">
+        <span className="opacity-60">LEARN →</span>
+        {LEARN[lang].map((r) => (
+          <a
+            key={r.href}
+            href={r.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline-offset-2 hover:underline hover:text-foreground transition-colors"
+          >
+            {r.label}
+          </a>
+        ))}
+      </div>
       <textarea
         spellCheck={false}
         className="field flex-1 !font-mono !text-[0.75rem] resize-none leading-relaxed"
