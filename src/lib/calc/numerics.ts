@@ -213,7 +213,8 @@ function formatCoef(v: number) {
 
 // ─── Solve f(x) = 0 — polynomial roots, fall back to Newton from guess ────
 export function solveZero(expr: string, varName: string, guess?: number) {
-  // Try polynomial root path.
+  // Try polynomial root path. Surface parse failures at debug level so the
+  // silent fallback to Newton is auditable without polluting normal output.
   try {
     const node = math.simplify(expr);
     const coeffs = polyCoeffs(node.toString(), varName);
@@ -221,7 +222,10 @@ export function solveZero(expr: string, varName: string, guess?: number) {
       const roots = polynomialRoots(coeffs);
       return { method: "polynomial-roots", roots, degree: coeffs.length - 1 };
     }
-  } catch { /* ignore */ }
+    console.debug("[solveZero] not a recognised polynomial in", varName, "→ falling back to Newton:", node.toString());
+  } catch (e) {
+    console.debug("[solveZero] polynomial path threw, falling back to Newton:", e);
+  }
   // Numeric fallback
   const f = compileFn(expr, [varName]);
   const res = newton((x) => f({ [varName]: x }), guess ?? 1);

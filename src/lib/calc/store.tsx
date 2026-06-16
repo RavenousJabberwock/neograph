@@ -26,7 +26,7 @@
  */
 import { createContext, useContext, useState, useCallback, type ReactNode, useRef, useEffect } from "react";
 import { defaultViewport, PLOT_COLORS, type PlotExpr, type Viewport } from "./math";
-import { bindBridge } from "./bridge";
+import { bindBridge, freshId } from "./bridge";
 import { applyTheme, isTheme, THEMES, type Theme } from "./themes";
 
 export type WallpaperName = "grid" | "scanlines" | "dots" | "hex" | "plain";
@@ -286,7 +286,7 @@ export function CalcProvider({ children }: { children: ReactNode }) {
     setPlots((prev) => [
       ...prev,
       {
-        id: `p${Date.now()}`,
+        id: freshId("p"),
         kind: "explicit",
         enabled: true,
         color: PLOT_COLORS[prev.length % PLOT_COLORS.length],

@@ -37,7 +37,7 @@ export function getGraphSnapshot(): string | null {
 
 /** Collision-resistant plot ID. Falls back to a high-entropy string when
  *  crypto.randomUUID is unavailable (very old browsers, sandboxed contexts). */
-function freshId(prefix = "p"): string {
+export function freshId(prefix = "p"): string {
   const c = (globalThis as { crypto?: Crypto }).crypto;
   if (c?.randomUUID) return `${prefix}_${c.randomUUID().slice(0, 8)}`;
   const buf = new Uint32Array(2);

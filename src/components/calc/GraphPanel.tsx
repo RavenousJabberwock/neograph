@@ -59,10 +59,12 @@ export function GraphPanel() {
     ctx.fillStyle = "oklch(0.155 0.025 250)";
     ctx.fillRect(0, 0, W, H);
 
-    // grid
+    // grid — target ~1 label per GRID_PX_X horizontally, GRID_PX_Y vertically.
     ctx.lineWidth = 1;
-    const xStep = niceStep((xMax - xMin) / 10);
-    const yStep = niceStep((yMax - yMin) / 6);
+    const GRID_PX_X = 60, GRID_PX_Y = 60;
+    const xStep = niceStep((xMax - xMin) / Math.max(2, Math.round(W / GRID_PX_X)));
+    const yStep = niceStep((yMax - yMin) / Math.max(2, Math.round(H / GRID_PX_Y)));
+
 
     ctx.strokeStyle = "oklch(0.5 0.05 200 / 12%)";
     ctx.beginPath();
