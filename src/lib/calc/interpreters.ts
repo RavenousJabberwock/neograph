@@ -193,22 +193,112 @@ export function runBasic(src: string, emit: Emit, dialect: "basic" | "tibasic" =
 }
 
 // ─── Mathematica-ish (very thin wrapper over mathjs) ──────────────────────
+// Persistent scope across lines, head-name rewriting (Sin→sin, Integrate→…),
+// and a few special forms mathjs doesn't ship with names Mathematica uses.
+const MMA_HEAD_MAP: Record<string, string> = {
+  sin: "sin", cos: "cos", tan: "tan", exp: "exp", log: "log", sqrt: "sqrt",
+  abs: "abs", floor: "floor", ceiling: "ceil", round: "round",
+  integrate: "integrate",   // handled specially below
+  d: "derivative",          // D[x^2, x]  → derivative("x^2","x")
+  simplify: "simplify", expand: "expand", factor: "factor",
+  solve: "solve", n: "number", plot: "plot",
+};
+
 export function runMathematica(src: string, emit: Emit) {
   emit("ℳ simulated · evaluating each line via mathjs (Mathematica-flavor)");
-  for (const line of src.split(/\r?\n/)) {
-    const s = line.replace(/\(\*.*?\*\)/g, "").trim();
-    if (!s) continue;
-    // Tiny syntactic glue:  Sin[x] → sin(x), Pi → pi, E → e, := / =
-    const js = s
-      .replace(/\bPi\b/g, "pi")
-      .replace(/\bE\b/g, "e")
-      .replace(/([A-Za-z]\w*)\[/g, (_m, n) => `${(n as string).toLowerCase()}(`)
-      .replace(/\]/g, ")")
-      .replace(/:=/g, "=");
+  const scope: Record<string, unknown> = {};
+
+  const rewrite = (s: string): string => {
+    // Strip (* comments *)
+    let t = s.replace(/\(\*[\s\S]*?\*\)/g, "").trim();
+    // Constants
+    t = t.replace(/\bPi\b/g, "pi").replace(/\bE\b/g, "e").replace(/\bInfinity\b/g, "Infinity");
+    // Head[args]  → head(args), preferring the map but falling back to lower-case.
+    //              Brackets are balanced by walking the string so nested calls survive.
+    let out = "";
+    let i = 0;
+    while (i < t.length) {
+      const m = /([A-Za-z]\w*)\[/.exec(t.slice(i));
+      if (!m || m.index !== 0) {
+        // copy one char and continue scanning for next head
+        const next = t.indexOf("[", i);
+        if (next < 0) { out += t.slice(i); break; }
+        // verify it looks like Head[
+        const head = /([A-Za-z]\w*)$/.exec(t.slice(i, next));
+        if (!head) { out += t.slice(i, next + 1); i = next + 1; continue; }
+        out += t.slice(i, next - head[1].length);
+        i = next - head[1].length;
+        continue;
+      }
+      const headRaw = m[1];
+      const headLc = headRaw.toLowerCase();
+      const mapped = MMA_HEAD_MAP[headLc] ?? headLc;
+      // walk to the matching ]
+      let depth = 1;
+      let j = m[0].length;
+      while (j < t.slice(i).length && depth > 0) {
+        const ch = t.slice(i)[j++];
+        if (ch === "[") depth++;
+        else if (ch === "]") depth--;
+      }
+      const innerRaw = t.slice(i).slice(m[0].length, j - 1);
+      const inner = rewrite(innerRaw); // recurse for nested heads
+      // Special forms
+      if (mapped === "integrate") {
+        // Integrate[f, x]  → indefinite integral via derivative inversion is hard;
+        //                   fall back to numeric: integrate symbolic only when math.js can.
+        // We hand to math.parse + symbolic if available; else flag.
+        out += `__integrate(${JSON.stringify(innerRaw)})`;
+      } else if (mapped === "derivative") {
+        out += `__derivative(${JSON.stringify(innerRaw)})`;
+      } else {
+        out += `${mapped}(${inner})`;
+      }
+      i += j;
+    }
+    // := and =  → assignment (mathjs uses =)
+    out = out.replace(/:=/g, "=");
+    return out;
+  };
+
+  // Inject helpers into scope so the rewritten JS-style calls resolve.
+  scope.__integrate = (raw: string) => {
+    const parts = raw.split(",").map((p) => p.trim());
+    if (parts.length < 2) return "Integrate: needs (expr, var)";
+    const [expr, v] = parts;
     try {
-      const v = math.evaluate(js);
+      // mathjs has no symbolic integrator; offer a definite numeric form if bounds given,
+      // else return a passthrough symbolic string.
+      if (parts.length === 4) {
+        const [, , a, b] = parts;
+        const f = math.compile(expr);
+        const lo = Number(math.evaluate(a, scope));
+        const hi = Number(math.evaluate(b, scope));
+        const N = 2000;
+        const h = (hi - lo) / N;
+        let s = 0.5 * (f.evaluate({ ...scope, [v]: lo }) + f.evaluate({ ...scope, [v]: hi }));
+        for (let k = 1; k < N; k++) s += f.evaluate({ ...scope, [v]: lo + k * h });
+        return s * h;
+      }
+      return `∫(${expr}) d${v}  · symbolic integration not available (mathjs has no integrator)`;
+    } catch (e) { return `Integrate error: ${(e as Error).message}`; }
+  };
+  scope.__derivative = (raw: string) => {
+    const parts = raw.split(",").map((p) => p.trim());
+    if (parts.length < 2) return "D: needs (expr, var)";
+    const [expr, v] = parts;
+    try { return math.derivative(expr, v).toString(); }
+    catch (e) { return `D error: ${(e as Error).message}`; }
+  };
+
+  for (const raw of src.split(/\r?\n/)) {
+    const s = raw.replace(/\(\*[\s\S]*?\*\)/g, "").trim();
+    if (!s) continue;
+    const js = rewrite(s);
+    try {
+      const v = math.evaluate(js, scope);
       emit(`In:  ${s}`);
-      emit(`Out: ${String(v)}`);
+      if (v !== undefined) emit(`Out: ${typeof v === "function" ? "<function>" : String(v)}`);
     } catch (e) {
       emit(`✖ ${s} — ${(e as Error).message}`);
     }
