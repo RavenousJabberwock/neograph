@@ -99,12 +99,14 @@ a*a
 `,
 };
 
-const HELP_PY = `# bridge available as 'graph':
+const HELP_PY = `# bridge available as 'graph' (JS object exposed to Python):
 #   graph.add(expr, kind="explicit")   →  id
-#   graph.list()                       →  [{id,kind,expr,enabled,color}, …]
+#   graph.list()                       →  JsProxy → call .to_py() for [{...}, ...]
 #   graph.clear() / graph.remove(id) / graph.toggle(id, on?)
-#   graph.view()                       →  {xMin,xMax,yMin,yMax}
+#   graph.view()                       →  JsProxy → .to_py() for {xMin,xMax,yMin,yMax}
 #   graph.setView(xmin,xmax,ymin,ymax)
+# Tip: any value returned from graph.* is a JsProxy. Use .to_py() before
+# iterating, indexing with [...], or dict-style access in Python.
 `;
 
 export function IdePanel() {
