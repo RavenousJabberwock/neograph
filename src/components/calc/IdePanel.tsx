@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Play, Trash2, Download, LineChart } from "lucide-react";
 import { graphApi } from "@/lib/calc/bridge";
-import { runLogo, runBasic, runMathematica, runSimulated } from "@/lib/calc/interpreters";
+import { runLogo, runBasic, runMathematica } from "@/lib/calc/interpreters";
 import { math } from "@/lib/calc/math";
 
 declare global {
   interface Window {
     loadPyodide?: (opts?: { indexURL?: string }) => Promise<PyodideAPI>;
     __pyodide?: PyodideAPI;
+    __webr?: WebRAPI;
   }
 }
 interface PyodideAPI {
@@ -16,28 +17,31 @@ interface PyodideAPI {
   setStderr: (opts: { batched: (s: string) => void }) => void;
   globals: { set: (k: string, v: unknown) => void };
 }
+interface WebRAPI {
+  init: () => Promise<void>;
+  evalRVoid: (code: string) => Promise<void>;
+}
 
 const PYODIDE_URL = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/";
+const WEBR_URL = "https://webr.r-wasm.org/latest/webr.mjs";
 
 type Lang =
   | "python" | "javascript" | "logo" | "basic" | "tibasic"
-  | "c" | "cpp" | "r" | "mathematica";
+  | "r" | "symbolic";
 
 const LANGS: { id: Lang; label: string; real: boolean }[] = [
-  { id: "python",       label: "Python (Pyodide)", real: true  },
-  { id: "javascript",   label: "JavaScript",       real: true  },
-  { id: "logo",         label: "LOGO (turtle)",    real: true  },
-  { id: "basic",        label: "BASIC",            real: true  },
-  { id: "tibasic",      label: "TI-BASIC",         real: true  },
-  { id: "c",            label: "C  · simulated",   real: false },
-  { id: "cpp",          label: "C++ · simulated",  real: false },
-  { id: "r",            label: "R  · simulated",   real: false },
-  { id: "mathematica",  label: "Mathematica",      real: false },
+  { id: "python",     label: "Python (Pyodide)",   real: true },
+  { id: "javascript", label: "JavaScript",         real: true },
+  { id: "r",          label: "R (WebR · WASM)",    real: true },
+  { id: "symbolic",   label: "Symbolic (mathjs)",  real: true },
+  { id: "logo",       label: "LOGO (turtle)",      real: true },
+  { id: "basic",      label: "BASIC",              real: true },
+  { id: "tibasic",    label: "TI-BASIC",           real: true },
 ];
 
 const EXT: Record<Lang, string> = {
   python: "py", javascript: "js", logo: "logo", basic: "bas", tibasic: "8xp.txt",
-  c: "c", cpp: "cpp", r: "R", mathematica: "wl",
+  r: "R", symbolic: "txt",
 };
 
 const SAMPLES: Record<Lang, string> = {
@@ -57,6 +61,22 @@ for (let k = 1; k <= 3; k++) graph.add(\`sin(\${k}*x)/\${k}\`);
 graph.setView(-6.28, 6.28, -2, 2);
 console.log("now plotting", graph.list().length, "curves");
 `,
+  r: `# Real R, running in-browser via WebR (r-wasm.org).
+# First run downloads ~25 MB of WASM; cached afterwards.
+x <- seq(-pi, pi, length.out = 9)
+y <- sin(x)
+print(data.frame(x = round(x, 3), y = round(y, 3)))
+cat("mean(y) =", mean(y), "\\n")
+summary(lm(y ~ x))
+`,
+  symbolic: `(* Symbolic / CAS-flavor — mathjs under the hood. Scope persists. *)
+Sin[Pi/4]
+D[x^2 + 3 x, x]              (* symbolic derivative *)
+Integrate[x^2, x, 0, 1]      (* definite integral *)
+a := 3
+a*a
+Simplify[(x^2 - 1)/(x - 1)]
+`,
   logo: `; Polygon spiral
 repeat 36 [ fd 60 rt 100 ]
 `,
@@ -72,32 +92,6 @@ repeat 36 [ fd 60 rt 100 ]
 30 LET B = A * 2 + 1
 40 DISP "B="; B
 50 PLOT "tan(x)/4"
-`,
-  c: `#include <stdio.h>
-int main(void){
-    int n = 10;
-    printf("n=%d square=%d\\n", n, n*n);
-    return 0;
-}
-`,
-  cpp: `#include <iostream>
-int main(){
-    double r = 7.25;
-    std::cout << "area = " << 3.14159 * r * r << std::endl;
-}
-`,
-  r: `x <- 5
-y <- x^2 + 2*x + 1
-print(y)
-cat(sqrt(2))
-`,
-  mathematica: `(* Mathematica-flavor — heads map to mathjs functions, scope persists *)
-Sin[Pi/4]
-D[x^2 + 3 x, x]              (* symbolic derivative *)
-Integrate[x^2, x, 0, 1]      (* definite integral via Simpson-ish trapezoid *)
-a := 3
-a*a
-Simplify[(x^2 - 1)/(x - 1)]
 `,
 };
 
@@ -118,12 +112,11 @@ export function IdePanel() {
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "running" | "error">("ready");
   const [progress, setProgress] = useState<string>("");
   const pyRef = useRef<PyodideAPI | null>(typeof window !== "undefined" ? window.__pyodide ?? null : null);
+  const webrRef = useRef<WebRAPI | null>(typeof window !== "undefined" ? window.__webr ?? null : null);
   const outRef = useRef<HTMLDivElement | null>(null);
   const emit = useMemo(() => (s: string) => setOutput((p) => p + s + "\n"), []);
 
   // Load pyodide lazily the first time the user selects python and hits RUN.
-  // loadPyodide doesn't expose a download-progress callback, so we surface
-  // step labels + an elapsed timer (~15MB total: pyodide.js + wasm + stdlib).
   const ensurePyodide = async () => {
     if (pyRef.current) return pyRef.current;
     setStatus("loading");
@@ -156,6 +149,38 @@ export function IdePanel() {
       setProgress(`ready · loaded in ${total}s`);
       window.setTimeout(() => setProgress(""), 2500);
       return py;
+    } finally {
+      clearInterval(tick);
+    }
+  };
+
+  // Load WebR lazily the first time R is run. Cached in window.__webr.
+  const ensureWebR = async () => {
+    if (webrRef.current) return webrRef.current;
+    setStatus("loading");
+    const t0 = performance.now();
+    let label = "fetching WebR module (~200KB)";
+    setProgress(`${label} · 0.0s`);
+    const tick = window.setInterval(() => {
+      const s = ((performance.now() - t0) / 1000).toFixed(1);
+      setProgress(`${label} · ${s}s`);
+    }, 100);
+    try {
+      const mod = await import(/* @vite-ignore */ WEBR_URL) as {
+        WebR: new (opts: { stdout: (s: string) => void; stderr: (s: string) => void }) => WebRAPI;
+      };
+      label = "downloading R runtime (~25MB wasm)";
+      const webR = new mod.WebR({
+        stdout: (s: string) => setOutput((p) => p + s + "\n"),
+        stderr: (s: string) => setOutput((p) => p + "⚠ " + s + "\n"),
+      });
+      await webR.init();
+      window.__webr = webR;
+      webrRef.current = webR;
+      const total = ((performance.now() - t0) / 1000).toFixed(1);
+      setProgress(`ready · loaded in ${total}s`);
+      window.setTimeout(() => setProgress(""), 2500);
+      return webR;
     } finally {
       clearInterval(tick);
     }
@@ -197,13 +222,15 @@ export function IdePanel() {
           } finally { console.log = orig; }
           break;
         }
-        case "logo":         runLogo(code, emit); break;
-        case "basic":        runBasic(code, emit, "basic"); break;
-        case "tibasic":      runBasic(code, emit, "tibasic"); break;
-        case "mathematica":  runMathematica(code, emit); break;
-        case "c":            runSimulated(code, emit, "C"); break;
-        case "cpp":          runSimulated(code, emit, "C++"); break;
-        case "r":            runSimulated(code, emit, "R"); break;
+        case "r": {
+          const webR = await ensureWebR();
+          await webR.evalRVoid(code);
+          break;
+        }
+        case "symbolic":  runMathematica(code, emit); break;
+        case "logo":      runLogo(code, emit); break;
+        case "basic":     runBasic(code, emit, "basic"); break;
+        case "tibasic":   runBasic(code, emit, "tibasic"); break;
       }
       setStatus("ready");
     } catch (e) {
