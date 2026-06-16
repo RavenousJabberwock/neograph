@@ -205,7 +205,7 @@ const MMA_HEAD_MAP: Record<string, string> = {
 };
 
 export function runMathematica(src: string, emit: Emit) {
-  emit("ℳ simulated · evaluating each line via mathjs (Mathematica-flavor)");
+  emit("ℳ symbolic · evaluating each line via mathjs (Mathematica-flavor head syntax)");
   const scope: Record<string, unknown> = {};
 
   const rewrite = (s: string): string => {
