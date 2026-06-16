@@ -1,14 +1,25 @@
 /**
  * Academy curriculum registry.
  * ------------------------------------------------------------------
- * The Academy spans K–Postgrad mathematics. Each stage lives in its own
- * module so the curriculum can be expanded without bloating a single
- * file. Sources cross-checked against OpenStax, Khan Academy outlines,
- * MIT OCW, Wikipedia, and NIST DLMF; prose, examples, and exercises are
- * written fresh here.
+ * Spans K–Postgrad mathematics — currently 14 stages, 100+ lessons.
  *
- * To extend: add a lesson to the relevant stage module, or create a new
- * stage module and register it below. The Academy UI auto-renders.
+ *   Foundations (K–5)         · 10    Multivariable Calc       ·  5
+ *   Pre-Algebra (Gr 6–8)      · 12    Linear Algebra           ·  9
+ *   Algebra I–II              · 10    Probability & Statistics ·  7
+ *   Trigonometry              ·  8    Differential Equations   ·  5
+ *   Precalculus               ·  7    Discrete Math            ·  7
+ *   Single-Variable Calc      ·  7    Analysis                 ·  5
+ *                                    Abstract Algebra         ·  3
+ *                                    Numerical Methods        ·  7
+ *
+ * Each stage lives in its own module so the curriculum can grow without
+ * bloating any single file. Prose, examples, and exercises are written
+ * fresh; cross-checked against OpenStax, Khan Academy outlines, MIT OCW,
+ * Wikipedia, NIST DLMF. Per-stage external link bundles live in
+ * `resources.ts`; per-lesson overrides go on `Lesson.resources`.
+ *
+ * To extend: append a lesson to the relevant stage module, or create a
+ * new stage module and register it below. The Academy UI auto-renders.
  * ------------------------------------------------------------------
  */
 import type { Stage } from "./types";
