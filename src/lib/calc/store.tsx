@@ -27,6 +27,7 @@
 import { createContext, useContext, useState, useCallback, type ReactNode, useRef, useEffect } from "react";
 import { defaultViewport, PLOT_COLORS, type PlotExpr, type Viewport } from "./math";
 import { bindBridge } from "./bridge";
+import { applyTheme, isTheme, THEMES, type Theme } from "./themes";
 
 export type WallpaperName = "grid" | "scanlines" | "dots" | "hex" | "plain";
 export type Wallpaper =
@@ -76,6 +77,8 @@ interface CalcState {
   focusWindow: (k: PanelKey) => void;
   wallpaper: Wallpaper;
   setWallpaper: (w: Wallpaper) => void;
+  theme: Theme;
+  setTheme: (t: Theme) => void;
   graphParams: GraphParams;
   setGraphParam: (k: keyof GraphParams, v: number) => void;
   /** Full workstation state → JSON string (for download). */
@@ -127,6 +130,7 @@ interface PersistedLayout {
   windows?: Partial<Record<PanelKey, WinRect>>;
   visible?: Partial<Record<PanelKey, boolean>>;
   wallpaper?: Wallpaper;
+  theme?: Theme;
   casMode?: boolean;
   vintage?: boolean;
 }
@@ -193,6 +197,8 @@ export function CalcProvider({ children }: { children: ReactNode }) {
   const [vintage, setVintage] = useState(false);
   const [windows, setWindows] = useState<Record<PanelKey, WinRect>>(DEFAULT_WINDOWS);
   const [wallpaper, setWallpaper] = useState<Wallpaper>({ kind: "preset", name: "grid" });
+  const [theme, setThemeRaw] = useState<Theme>(THEMES.noir);
+  const setTheme = useCallback((t: Theme) => { setThemeRaw(t); applyTheme(t); }, []);
   const [graphParams, setGraphParams] = useState<GraphParams>({ a: 1, b: 1, c: 1, d: 1 });
   const setGraphParam = useCallback((k: keyof GraphParams, v: number) => {
     setGraphParams((prev) => ({ ...prev, [k]: v }));
@@ -220,6 +226,7 @@ export function CalcProvider({ children }: { children: ReactNode }) {
     if (parsed.windows) setWindows((prev) => ({ ...prev, ...parsed.windows }));
     if (parsed.visible) setVisible((prev) => ({ ...prev, ...parsed.visible }));
     if (parsed.wallpaper && isWallpaper(parsed.wallpaper)) setWallpaper(parsed.wallpaper);
+    if (parsed.theme && isTheme(parsed.theme)) { setThemeRaw(parsed.theme); applyTheme(parsed.theme); }
     if (typeof parsed.casMode === "boolean") setCasMode(parsed.casMode);
     if (typeof parsed.vintage === "boolean") setVintage(parsed.vintage);
   }, []);
@@ -227,12 +234,12 @@ export function CalcProvider({ children }: { children: ReactNode }) {
   // Persist layout snapshot.
   useEffect(() => {
     try {
-      const snap: PersistedLayout = { windows, visible, wallpaper, casMode, vintage };
+      const snap: PersistedLayout = { windows, visible, wallpaper, theme, casMode, vintage };
       localStorage.setItem(STORAGE_LAYOUT, JSON.stringify(snap));
     } catch (e) {
       console.warn("[store] failed to persist layout:", e);
     }
-  }, [windows, visible, wallpaper, casMode, vintage]);
+  }, [windows, visible, wallpaper, theme, casMode, vintage]);
 
   const registerInputRef = useCallback((el: HTMLInputElement | null) => { inputRef.current = el; }, []);
 
@@ -297,9 +304,9 @@ export function CalcProvider({ children }: { children: ReactNode }) {
       _version: 1,
       _app: "neograph",
       _exportedAt: new Date().toISOString(),
-      plots, viewport, visible, windows, wallpaper, casMode, vintage, graphParams,
+      plots, viewport, visible, windows, wallpaper, theme, casMode, vintage, graphParams,
     }, null, 2);
-  }, [plots, viewport, visible, windows, wallpaper, casMode, vintage, graphParams]);
+  }, [plots, viewport, visible, windows, wallpaper, theme, casMode, vintage, graphParams]);
 
   const importState = useCallback((json: string): boolean => {
     try {
@@ -310,6 +317,7 @@ export function CalcProvider({ children }: { children: ReactNode }) {
       if (o.visible) setVisible((prev) => ({ ...prev, ...o.visible }));
       if (o.windows) setWindows((prev) => ({ ...prev, ...o.windows }));
       if (o.wallpaper && isWallpaper(o.wallpaper)) setWallpaper(o.wallpaper);
+      if (o.theme && isTheme(o.theme)) { setThemeRaw(o.theme); applyTheme(o.theme); }
       if (typeof o.casMode === "boolean") setCasMode(o.casMode);
       if (typeof o.vintage === "boolean") setVintage(o.vintage);
       if (o.graphParams) setGraphParams((prev) => ({ ...prev, ...o.graphParams }));
@@ -335,6 +343,7 @@ export function CalcProvider({ children }: { children: ReactNode }) {
       vintage, setVintage,
       windows, setWindow, focusWindow,
       wallpaper, setWallpaper,
+      theme, setTheme,
       graphParams, setGraphParam,
       exportState, importState,
     }}>
