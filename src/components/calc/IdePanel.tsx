@@ -115,28 +115,44 @@ export function IdePanel() {
   const outRef = useRef<HTMLDivElement | null>(null);
   const emit = useMemo(() => (s: string) => setOutput((p) => p + s + "\n"), []);
 
-  // Load pyodide lazily the first time the user selects python and hits RUN
+  // Load pyodide lazily the first time the user selects python and hits RUN.
+  // loadPyodide doesn't expose a download-progress callback, so we surface
+  // step labels + an elapsed timer (~15MB total: pyodide.js + wasm + stdlib).
   const ensurePyodide = async () => {
     if (pyRef.current) return pyRef.current;
-    setStatus("loading"); setProgress("fetching pyodide.js…");
-    if (!window.loadPyodide) {
-      await new Promise<void>((res, rej) => {
-        const s = document.createElement("script");
-        s.src = `${PYODIDE_URL}pyodide.js`; s.async = true;
-        s.onload = () => res();
-        s.onerror = () => rej(new Error("pyodide.js failed to load"));
-        document.head.appendChild(s);
-      });
+    setStatus("loading");
+    const t0 = performance.now();
+    let label = "fetching pyodide.js (~250KB)";
+    setProgress(`${label} · 0.0s`);
+    const tick = window.setInterval(() => {
+      const s = ((performance.now() - t0) / 1000).toFixed(1);
+      setProgress(`${label} · ${s}s`);
+    }, 100);
+    try {
+      if (!window.loadPyodide) {
+        await new Promise<void>((res, rej) => {
+          const s = document.createElement("script");
+          s.src = `${PYODIDE_URL}pyodide.js`; s.async = true;
+          s.onload = () => res();
+          s.onerror = () => rej(new Error("pyodide.js failed to load"));
+          document.head.appendChild(s);
+        });
+      }
+      label = "downloading runtime (~10MB wasm + stdlib)";
+      const py = await window.loadPyodide!({ indexURL: PYODIDE_URL });
+      label = "wiring graph bridge";
+      py.setStdout({ batched: (s) => setOutput((p) => p + s + "\n") });
+      py.setStderr({ batched: (s) => setOutput((p) => p + "⚠ " + s + "\n") });
+      py.globals.set("graph", graphApi);
+      window.__pyodide = py;
+      pyRef.current = py;
+      const total = ((performance.now() - t0) / 1000).toFixed(1);
+      setProgress(`ready · loaded in ${total}s`);
+      window.setTimeout(() => setProgress(""), 2500);
+      return py;
+    } finally {
+      clearInterval(tick);
     }
-    setProgress("booting Python (~10MB)…");
-    const py = await window.loadPyodide!({ indexURL: PYODIDE_URL });
-    py.setStdout({ batched: (s) => setOutput((p) => p + s + "\n") });
-    py.setStderr({ batched: (s) => setOutput((p) => p + "⚠ " + s + "\n") });
-    py.globals.set("graph", graphApi);
-    window.__pyodide = py;
-    pyRef.current = py;
-    setProgress("");
-    return py;
   };
 
   useEffect(() => { outRef.current?.scrollTo(0, outRef.current.scrollHeight); }, [output]);
