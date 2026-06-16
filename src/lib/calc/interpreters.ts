@@ -305,44 +305,4 @@ export function runMathematica(src: string, emit: Emit) {
   }
 }
 
-// ─── Pseudo-C / pseudo-R: simulated compile + interpret of math/print only ─
-export function runSimulated(src: string, emit: Emit, label: string) {
-  emit(`◆ ${label} — running in simulation mode (no native runtime in browser).`);
-  emit(`◆ recognised: printf/print/cout statements + arithmetic expressions.`);
-  const lines = src.split(/\r?\n/);
-  let n = 0;
-  for (const raw of lines) {
-    const s = raw.trim();
-    if (!s || s.startsWith("//") || s.startsWith("#") || s.startsWith("/*")) continue;
-
-    // printf("...", a, b)  /  cout << x << "..."  /  print(x)  /  cat(x)
-    const pf = s.match(/printf\s*\(\s*"([^"]*)"(?:\s*,\s*(.+))?\)\s*;?/);
-    if (pf) {
-      const fmt = pf[1].replace(/\\n/g, "\n");
-      const args = (pf[2] ?? "").split(",").map((a) => a.trim()).filter(Boolean);
-      let i = 0;
-      const out = fmt.replace(/%[difsg]/g, () => {
-        try { return String(math.evaluate(args[i++] ?? "")); } catch { return "?"; }
-      });
-      emit(out);
-      n++; continue;
-    }
-    const cout = s.match(/cout\s*((?:<<\s*(?:"[^"]*"|[^<;]+)\s*)+);?/);
-    if (cout) {
-      let out = "";
-      for (const m of cout[1].matchAll(/<<\s*("([^"]*)"|[^<;]+)/g)) {
-        const tok = (m[1] ?? "").trim();
-        if (tok.startsWith('"') && tok.endsWith('"')) out += tok.slice(1, -1);
-        else if (tok === "endl") out += "\n";
-        else { try { out += String(math.evaluate(tok)); } catch { out += "?"; } }
-      }
-      emit(out);
-      n++; continue;
-    }
-    const pr = s.match(/^(?:print|cat)\s*\((.+)\)\s*;?$/);
-    if (pr) { try { emit(String(math.evaluate(pr[1]))); } catch { emit("?"); } n++; continue; }
-    // Bare expression
-    try { const v = math.evaluate(s.replace(/;$/, "")); emit(`= ${v}`); n++; } catch { /* skip */ }
-  }
-  emit(`◆ ${n} statement(s) simulated.`);
-}
+// (Simulated C/C++/R interpreter removed — replaced by real WebR runtime in IdePanel.)
