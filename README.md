@@ -181,8 +181,8 @@ quarterly (link rot is the only ongoing maintenance cost of this module).
 * **TanStack Start v1** (file-based routing, server functions)
 * **React 19** + **Vite 7**
 * **Tailwind v4** via native `@import` in `styles.css`
-* **Pyodide** (Python in browser, lazy-loaded with progress UI), **nerdamer** (CAS),
-  **mathjs**, **ml-matrix**, **jstat**, **KaTeX**
+* **Pyodide** (Python in browser, lazy-loaded with progress UI), **WebR** (real R via r-wasm.org, lazy-loaded),
+  **nerdamer** (CAS), **mathjs**, **ml-matrix**, **jstat**, **KaTeX**
 
 ---
 
