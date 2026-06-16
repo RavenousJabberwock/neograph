@@ -1,6 +1,6 @@
 import { useCalc } from "@/lib/calc/store";
 import { math } from "@/lib/calc/math";
-import { wallpaperStyle } from "@/lib/calc/wallpaper";
+
 import { CornerDownLeft, Delete } from "lucide-react";
 import { useEffect, useRef } from "react";
 
