@@ -82,14 +82,17 @@ function Index() {
 
 function Workstation() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const { visible, windows } = useCalc();
+  const { visible, windows, wallpaper } = useCalc();
 
   const minimized = PANELS.filter((p) => visible[p.key] && windows[p.key].min);
+
+  // Workstation desktop background: user-selected wallpaper (preset or image).
+  const wpStyle = wallpaperStyle(wallpaper);
 
   return (
     <div className="flex flex-col h-screen w-screen">
       <TopBar onToggleSidebar={() => setSidebarOpen((v) => !v)} sidebarOpen={sidebarOpen} />
-      <div className="flex-1 min-h-0 relative overflow-hidden"
+      <div className="flex-1 min-h-0 relative overflow-hidden" style={wpStyle}>
            style={{
              backgroundImage: "linear-gradient(oklch(0.55 0.08 195 / 8%) 1px, transparent 1px), linear-gradient(90deg, oklch(0.55 0.08 195 / 8%) 1px, transparent 1px)",
              backgroundSize: "32px 32px",
