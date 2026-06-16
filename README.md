@@ -186,6 +186,14 @@ quarterly (link rot is the only ongoing maintenance cost of this module).
 
 ---
 
+## ✦ Self-hosting / deployment
+
+See [DEPLOY.md](./DEPLOY.md) for Cloudflare Workers deploy steps and how to
+vendor Pyodide + WebR into `public/` so the app runs with zero third-party
+CDN requests (useful behind strict corporate proxies).
+
+---
+
 ## ✦ License
 
 MIT — synthwave the math, share the source.

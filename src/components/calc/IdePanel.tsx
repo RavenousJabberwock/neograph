@@ -22,8 +22,14 @@ interface WebRAPI {
   evalRVoid: (code: string) => Promise<void>;
 }
 
-const PYODIDE_URL = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/";
-const WEBR_URL = "https://webr.r-wasm.org/latest/webr.mjs";
+// Runtime URLs. Override at build time with VITE_PYODIDE_URL / VITE_WEBR_URL
+// to self-host (see DEPLOY.md → "Vendor the WASM runtimes").
+const PYODIDE_URL =
+  (import.meta.env.VITE_PYODIDE_URL as string | undefined) ??
+  "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/";
+const WEBR_URL =
+  (import.meta.env.VITE_WEBR_URL as string | undefined) ??
+  "https://webr.r-wasm.org/latest/webr.mjs";
 
 type Lang =
   | "python" | "javascript" | "logo" | "basic" | "tibasic"
