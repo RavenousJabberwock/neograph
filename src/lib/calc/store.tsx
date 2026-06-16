@@ -130,6 +130,7 @@ interface PersistedLayout {
   windows?: Partial<Record<PanelKey, WinRect>>;
   visible?: Partial<Record<PanelKey, boolean>>;
   wallpaper?: Wallpaper;
+  theme?: Theme;
   casMode?: boolean;
   vintage?: boolean;
 }
