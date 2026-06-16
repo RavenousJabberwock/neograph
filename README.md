@@ -93,7 +93,7 @@ src/
 │  ├─ math.ts                   # Expression eval, PlotKind, ANS, deg/rad helpers
 │  ├─ numerics.ts               # RK45, adaptive Simpson, Brent, Newton, limits, Aberth roots
 │  ├─ bridge.ts                 # graph.add/list/setView/snapshot — used by IDE scripts
-│  ├─ interpreters.ts           # LOGO + BASIC + Mathematica mini-runtimes
+│  ├─ interpreters.ts           # LOGO + BASIC + Symbolic (Mathematica-flavor over mathjs) mini-runtimes
 │  ├─ commands.ts               # Terminal command registry (extensible)
 │  ├─ themes.ts                 # 6 palettes + custom-color machinery
 │  ├─ markdown.ts               # Notepad markdown renderer
