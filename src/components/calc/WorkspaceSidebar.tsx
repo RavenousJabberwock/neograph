@@ -1,11 +1,12 @@
-import { useCalc, type PanelKey, type WallpaperName } from "@/lib/calc/store";
+import { useCalc, type PanelKey, type WallpaperName, type Wallpaper } from "@/lib/calc/store";
 import { defaultViewport } from "@/lib/calc/math";
 import { getGraphSnapshot } from "@/lib/calc/bridge";
+import { THEMES, CUSTOM_KEYS, type Theme } from "@/lib/calc/themes";
 import {
   FolderOpen, Save, FilePlus2, X, Calculator, LineChart, Table2, Sigma,
   Code2, Paintbrush, BarChart3, Grid3x3, Crosshair, BookOpen, Image as ImageIcon, Camera,
   Terminal as TermIcon, Radio as RadioIcon, NotebookPen, Box, Activity,
-  Download, Upload, GraduationCap,
+  Download, Upload, GraduationCap, Palette, Link as LinkIcon,
 } from "lucide-react";
 import { useRef, useState } from "react";
 
@@ -19,6 +20,8 @@ interface Workspace {
     visible: Record<PanelKey, boolean>;
     casMode: boolean;
     vintage: boolean;
+    wallpaper?: Wallpaper;
+    theme?: Theme;
   };
 }
 
