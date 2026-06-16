@@ -98,8 +98,7 @@ export function CalculatorPanel() {
   ];
 
   return (
-    <div className="relative p-3 flex flex-col gap-3 h-full" style={wallpaperStyle(wallpaper)}>
-      <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, oklch(0.18 0.03 250 / 55%), oklch(0.16 0.03 250 / 78%))" }} />
+    <div className="relative p-3 flex flex-col gap-3 h-full">
       <div className="relative text-[0.55rem] tracking-widest text-muted-foreground text-right">
         MODE · {casMode ? "CAS" : "NUM"} · WP · {wallpaper.kind === "preset" ? wallpaper.name.toUpperCase() : (wallpaper.label ?? "IMAGE")}
       </div>
