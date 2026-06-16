@@ -226,6 +226,7 @@ export function CalcProvider({ children }: { children: ReactNode }) {
     if (parsed.windows) setWindows((prev) => ({ ...prev, ...parsed.windows }));
     if (parsed.visible) setVisible((prev) => ({ ...prev, ...parsed.visible }));
     if (parsed.wallpaper && isWallpaper(parsed.wallpaper)) setWallpaper(parsed.wallpaper);
+    if (parsed.theme && isTheme(parsed.theme)) { setThemeRaw(parsed.theme); applyTheme(parsed.theme); }
     if (typeof parsed.casMode === "boolean") setCasMode(parsed.casMode);
     if (typeof parsed.vintage === "boolean") setVintage(parsed.vintage);
   }, []);
@@ -233,12 +234,12 @@ export function CalcProvider({ children }: { children: ReactNode }) {
   // Persist layout snapshot.
   useEffect(() => {
     try {
-      const snap: PersistedLayout = { windows, visible, wallpaper, casMode, vintage };
+      const snap: PersistedLayout = { windows, visible, wallpaper, theme, casMode, vintage };
       localStorage.setItem(STORAGE_LAYOUT, JSON.stringify(snap));
     } catch (e) {
       console.warn("[store] failed to persist layout:", e);
     }
-  }, [windows, visible, wallpaper, casMode, vintage]);
+  }, [windows, visible, wallpaper, theme, casMode, vintage]);
 
   const registerInputRef = useCallback((el: HTMLInputElement | null) => { inputRef.current = el; }, []);
 
