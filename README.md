@@ -22,7 +22,7 @@ double-click — no server, no install.
 | **Linear algebra** | RREF, determinant, inverse, **eigenvalues / eigenvectors**, **SVD**, **LU / QR / Cholesky**, null & column space |
 | **Calculus numerics** | RK45 (Dormand-Prince) ODEs, adaptive Simpson quadrature, Newton + Brent root finders, numerical limits, Taylor series, polynomial roots (Aberth) |
 | **Statistics** | 10 distributions, hypothesis tests (t, ANOVA, χ²), linear / multivariate / logistic regression |
-| **Programming** | IDE with **Python (Pyodide)**, JS, LOGO turtle, BASIC/TI-BASIC, plus simulated C/C++/R/Mathematica. Scripts read/write the graph via the `graph` bridge |
+| **Programming** | IDE with **Python (Pyodide)**, JavaScript, **R (WebR · WASM)**, **Symbolic (mathjs CAS-flavor)**, LOGO turtle, BASIC / TI-BASIC. All runtimes are real (Pyodide & WebR lazy-load on first use). Scripts read/write the graph via the `graph` bridge |
 | **Terminal** | `/dev/neograph` shell with extensible command registry, history, `lambda.registerCommand()` from scripts |
 | **Academy** | 14 stages · **100+ lessons** from K-arithmetic through analysis, abstract algebra & numerical methods, with worked examples, exercises, and curated free reading / video links |
 | **Utility** | Tabbed **Notepad with live Markdown rendering** (find/replace, .md/.txt I/O, autosave), MS-Paint board, Internet Radio (SomaFM focus feeds) |
@@ -80,7 +80,7 @@ src/
 │  ├─ MatrixPanel.tsx           # ml-matrix decompositions
 │  ├─ StatsPanel.tsx            # jstat distributions & tests
 │  ├─ NumericsPanel.tsx         # ODE / ∫ / root finders / limits / Taylor
-│  ├─ IdePanel.tsx              # Pyodide + JS + LOGO + BASIC, with download progress
+│  ├─ IdePanel.tsx              # Pyodide + WebR + JS + Symbolic + LOGO + BASIC, lazy-load progress UI
 │  ├─ TerminalPanel.tsx         # /dev/neograph
 │  ├─ NotepadPanel.tsx          # Tabbed editor, .md preview, seed docs
 │  ├─ AcademyPanel.tsx          # Curriculum browser, exercises, resource links
@@ -93,7 +93,7 @@ src/
 │  ├─ math.ts                   # Expression eval, PlotKind, ANS, deg/rad helpers
 │  ├─ numerics.ts               # RK45, adaptive Simpson, Brent, Newton, limits, Aberth roots
 │  ├─ bridge.ts                 # graph.add/list/setView/snapshot — used by IDE scripts
-│  ├─ interpreters.ts           # LOGO + BASIC + Mathematica mini-runtimes
+│  ├─ interpreters.ts           # LOGO + BASIC + Symbolic (Mathematica-flavor over mathjs) mini-runtimes
 │  ├─ commands.ts               # Terminal command registry (extensible)
 │  ├─ themes.ts                 # 6 palettes + custom-color machinery
 │  ├─ markdown.ts               # Notepad markdown renderer
@@ -181,8 +181,8 @@ quarterly (link rot is the only ongoing maintenance cost of this module).
 * **TanStack Start v1** (file-based routing, server functions)
 * **React 19** + **Vite 7**
 * **Tailwind v4** via native `@import` in `styles.css`
-* **Pyodide** (Python in browser, lazy-loaded with progress UI), **nerdamer** (CAS),
-  **mathjs**, **ml-matrix**, **jstat**, **KaTeX**
+* **Pyodide** (Python in browser, lazy-loaded with progress UI), **WebR** (real R via r-wasm.org, lazy-loaded),
+  **nerdamer** (CAS), **mathjs**, **ml-matrix**, **jstat**, **KaTeX**
 
 ---
 

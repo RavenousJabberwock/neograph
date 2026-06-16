@@ -115,6 +115,41 @@ export function IdePanel() {
   const webrRef = useRef<WebRAPI | null>(typeof window !== "undefined" ? window.__webr ?? null : null);
   const outRef = useRef<HTMLDivElement | null>(null);
   const emit = useMemo(() => (s: string) => setOutput((p) => p + s + "\n"), []);
+const LEARN: Record<Lang, { label: string; href: string }[]> = {
+  python: [
+    { label: "Python docs", href: "https://docs.python.org/3/" },
+    { label: "Pyodide", href: "https://pyodide.org/en/stable/" },
+    { label: "SciPy lectures", href: "https://lectures.scientific-python.org/" },
+  ],
+  javascript: [
+    { label: "MDN JS", href: "https://developer.mozilla.org/docs/Web/JavaScript" },
+    { label: "javascript.info", href: "https://javascript.info/" },
+    { label: "mathjs docs", href: "https://mathjs.org/docs/" },
+  ],
+  r: [
+    { label: "R Manuals", href: "https://cran.r-project.org/manuals.html" },
+    { label: "WebR docs", href: "https://docs.r-wasm.org/webr/latest/" },
+    { label: "R for Data Sci.", href: "https://r4ds.hadley.nz/" },
+  ],
+  symbolic: [
+    { label: "mathjs expressions", href: "https://mathjs.org/docs/expressions/syntax.html" },
+    { label: "Wolfram syntax", href: "https://reference.wolfram.com/language/" },
+    { label: "Symbolic comp.", href: "https://en.wikipedia.org/wiki/Computer_algebra_system" },
+  ],
+  logo: [
+    { label: "LOGO primer", href: "https://el.media.mit.edu/logo-foundation/what_is_logo/index.html" },
+    { label: "Turtle geometry", href: "https://en.wikipedia.org/wiki/Turtle_graphics" },
+  ],
+  basic: [
+    { label: "BASIC history", href: "https://en.wikipedia.org/wiki/BASIC" },
+    { label: "Vintage BASIC", href: "https://www.vintage-basic.net/" },
+  ],
+  tibasic: [
+    { label: "TI-BASIC ref", href: "https://tibasicdev.wikidot.com/" },
+    { label: "TI guidebooks", href: "https://education.ti.com/en/guidebook/search" },
+  ],
+};
+
 
   // Load pyodide lazily the first time the user selects python and hits RUN.
   const ensurePyodide = async () => {
@@ -281,6 +316,20 @@ export function IdePanel() {
         <span className="ml-auto text-[0.6rem] tracking-widest text-muted-foreground">
           {status === "loading" ? progress : `${langMeta.real ? "runtime" : "simulated"} · ${status}`}
         </span>
+      </div>
+      <div className="flex items-center gap-2 flex-wrap text-[0.6rem] tracking-wider text-muted-foreground border-b border-border pb-1">
+        <span className="opacity-60">LEARN →</span>
+        {LEARN[lang].map((r) => (
+          <a
+            key={r.href}
+            href={r.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline-offset-2 hover:underline hover:text-foreground transition-colors"
+          >
+            {r.label}
+          </a>
+        ))}
       </div>
       <textarea
         spellCheck={false}

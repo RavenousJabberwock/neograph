@@ -255,20 +255,29 @@ export const HELP: Record<PanelKey, HelpSection> = {
 
   ide: {
     title: "IDE (multi-language)",
-    tagline: "Run JS, Python (Brython/Pyodide-style), Lua, BASIC snippets.",
+    tagline: "Real in-browser runtimes: Python, JS, R, Symbolic CAS, LOGO, BASIC.",
     summary:
-      "Lightweight scratchpad that executes scripts in-browser and exposes the graph/plot bridge. Treat it like a programmable function key.",
+      "Lightweight scratchpad that executes scripts in-browser and exposes the graph bridge. Python (Pyodide) and R (WebR) lazy-load on first RUN; everything else is instant. Treat it like a programmable function key.",
     concepts: [
       {
         title: "Graph bridge",
-        body: "Scripts can call `addPlot(expr)` / `setViewport({…})` to manipulate the Graph window from code.",
+        body: "Scripts call `graph.add(expr)`, `graph.list()`, `graph.setView(…)`, `graph.clear()` to manipulate the Graph window from code. In Python, `graph.*` returns a JsProxy — call `.to_py()` to iterate or index.",
+      },
+      {
+        title: "Lazy runtimes",
+        body: "Pyodide (~15 MB) downloads on first Python run; WebR (~25 MB) on first R run. Both cache in the browser for the session.",
+      },
+      {
+        title: "Symbolic mode",
+        body: "Mathematica-flavor head syntax (`Sin[x]`, `D[…]`, `Integrate[…]`) rewritten onto mathjs. Definite integrals are numeric (Simpson-ish); symbolic derivatives are exact.",
       },
     ],
     keys: [
-      { key: "Run", what: "Execute the current tab in the selected language sandbox." },
-      { key: "Language tabs", what: "Switch interpreter (each tab keeps its own buffer)." },
+      { key: "RUN", what: "Execute the current buffer in the selected language." },
+      { key: "Language dropdown", what: "Switch interpreter (buffer auto-swaps to that language's sample)." },
+      { key: "GRAPH", what: "Dump the current graph state (viewport + plot list) to the output pane." },
     ],
-    examples: [{ input: "addPlot('sin(x)*x')", result: "Adds curve to Graph window." }],
+    examples: [{ input: "graph.add('sin(x)*x')", result: "Adds curve to Graph window." }],
     related: ["graph", "terminal"],
   },
 
