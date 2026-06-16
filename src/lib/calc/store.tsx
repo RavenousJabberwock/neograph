@@ -77,6 +77,8 @@ interface CalcState {
   focusWindow: (k: PanelKey) => void;
   wallpaper: Wallpaper;
   setWallpaper: (w: Wallpaper) => void;
+  theme: Theme;
+  setTheme: (t: Theme) => void;
   graphParams: GraphParams;
   setGraphParam: (k: keyof GraphParams, v: number) => void;
   /** Full workstation state → JSON string (for download). */
