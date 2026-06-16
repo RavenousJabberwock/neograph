@@ -209,7 +209,7 @@ export function WorkspaceSidebar() {
 
       <div className="border-t border-border pt-3">
         <div className="text-[0.55rem] tracking-widest text-muted-foreground mb-1.5 flex items-center gap-1">
-          <ImageIcon size={10} /> CALC · WALLPAPER
+          <ImageIcon size={10} /> DESKTOP · WALLPAPER
         </div>
         <div className="flex flex-wrap gap-1 mb-2">
           {presets.map((p) => (
@@ -220,6 +220,19 @@ export function WorkspaceSidebar() {
               onClick={() => setWallpaper({ kind: "preset", name: p.name })}
             >{p.label}</button>
           ))}
+        </div>
+        <div className="flex gap-1 mb-1.5">
+          <input
+            className="field !py-1 text-[0.65rem] flex-1"
+            placeholder="https://… or data:image/…"
+            value={wpUrl}
+            onChange={(e) => setWpUrl(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") applyWpUrl(); }}
+          />
+          <button className="pill-btn !text-[0.6rem]" onClick={applyWpUrl} title="Set wallpaper from URL"><LinkIcon size={12} /></button>
+          <button className="pill-btn !text-[0.6rem]" onClick={() => wpFileRef.current?.click()} title="Upload local image"><Upload size={12} /></button>
+          <input ref={wpFileRef} type="file" accept="image/*" className="hidden"
+            onChange={(e) => applyWpFile(e.target.files?.[0])} />
         </div>
         <button className="pill-btn w-full justify-center mb-1.5" onClick={importGraphSnapshot}>
           <Camera size={12} /> SNAP GRAPH WINDOW
@@ -238,6 +251,46 @@ export function WorkspaceSidebar() {
           <button className="pill-btn !text-[0.6rem]" disabled={!pickPlot} onClick={importPlotAsWallpaper}>IMPORT</button>
         </div>
       </div>
+
+      <div className="border-t border-border pt-3">
+        <div className="text-[0.55rem] tracking-widest text-muted-foreground mb-1.5 flex items-center gap-1">
+          <Palette size={10} /> THEME · {theme.label}
+        </div>
+        <div className="flex flex-wrap gap-1 mb-2">
+          {Object.values(THEMES).map((t) => (
+            <button
+              key={t.name}
+              className="pill-btn !text-[0.6rem] !px-1.5 !py-0.5"
+              data-active={theme.name === t.name}
+              onClick={() => setTheme(t)}
+            >{t.label}</button>
+          ))}
+        </div>
+        <details className="text-[0.65rem]">
+          <summary className="cursor-pointer text-muted-foreground tracking-widest mb-1">CUSTOM COLORS</summary>
+          <div className="grid grid-cols-2 gap-1.5 mt-1.5">
+            {CUSTOM_KEYS.map((k) => {
+              const v = theme.vars[k] ?? "#888888";
+              const isHex = /^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/.test(v);
+              return (
+                <label key={k} className="flex items-center gap-1.5">
+                  <input
+                    type="color"
+                    value={isHex ? v.slice(0, 7) : "#888888"}
+                    onChange={(e) => setCustomVar(k, e.target.value)}
+                    className="h-5 w-6 bg-transparent border border-border rounded-sm cursor-pointer"
+                  />
+                  <span className="truncate text-muted-foreground">{k.replace("--", "")}</span>
+                </label>
+              );
+            })}
+          </div>
+          <div className="text-[0.55rem] text-muted-foreground mt-1.5 leading-relaxed">
+            Custom colors save with the workspace.
+          </div>
+        </details>
+      </div>
+
 
       <div className="border-t border-border pt-3">
         <div className="text-[0.55rem] tracking-widest text-muted-foreground mb-1.5">PANELS</div>
