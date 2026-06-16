@@ -314,7 +314,7 @@ const LEARN: Record<Lang, { label: string; href: string }[]> = {
         <button className="pill-btn" onClick={dumpGraph} title="Dump current graph state"><LineChart size={12} /> GRAPH</button>
         <button className="pill-btn" onClick={download}><Download size={12} /> .{EXT[lang]}</button>
         <span className="ml-auto text-[0.6rem] tracking-widest text-muted-foreground">
-          {status === "loading" ? progress : `${langMeta.real ? "runtime" : "simulated"} · ${status}`}
+          {status === "loading" ? progress : `runtime · ${status}`}
         </span>
       </div>
       <div className="flex items-center gap-2 flex-wrap text-[0.6rem] tracking-wider text-muted-foreground border-b border-border pb-1">
