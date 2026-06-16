@@ -34,11 +34,13 @@ function saveAll(ws: Record<string, Workspace>) {
 }
 
 export function WorkspaceSidebar() {
-  const { plots, setPlots, viewport, setViewport, visible, toggleVisible, casMode, setCasMode, vintage, setVintage, wallpaper, setWallpaper, exportState, importState } = useCalc();
+  const { plots, setPlots, viewport, setViewport, visible, toggleVisible, casMode, setCasMode, vintage, setVintage, wallpaper, setWallpaper, theme, setTheme, exportState, importState } = useCalc();
   const [workspaces, setWorkspaces] = useState<Record<string, Workspace>>(loadAll());
   const [name, setName] = useState("default");
   const [pickPlot, setPickPlot] = useState<string>("");
+  const [wpUrl, setWpUrl] = useState("");
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const wpFileRef = useRef<HTMLInputElement | null>(null);
 
   const downloadLayout = () => {
     const blob = new Blob([exportState()], { type: "application/json" });
