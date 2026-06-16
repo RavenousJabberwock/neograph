@@ -25,6 +25,7 @@ import { AcademyPanel } from "@/components/calc/AcademyPanel";
 import { RadioProvider } from "@/lib/calc/radio-context";
 import { RadioMiniDock } from "@/components/calc/RadioMiniDock";
 import { HelpDialog } from "@/components/calc/HelpDialog";
+import { wallpaperStyle } from "@/lib/calc/wallpaper";
 
 export const Route = createFileRoute("/")({
   head: () => ({
