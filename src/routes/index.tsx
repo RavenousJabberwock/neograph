@@ -93,10 +93,6 @@ function Workstation() {
     <div className="flex flex-col h-screen w-screen">
       <TopBar onToggleSidebar={() => setSidebarOpen((v) => !v)} sidebarOpen={sidebarOpen} />
       <div className="flex-1 min-h-0 relative overflow-hidden" style={wpStyle}>
-           style={{
-             backgroundImage: "linear-gradient(oklch(0.55 0.08 195 / 8%) 1px, transparent 1px), linear-gradient(90deg, oklch(0.55 0.08 195 / 8%) 1px, transparent 1px)",
-             backgroundSize: "32px 32px",
-           }}>
         {sidebarOpen && (
           <FloatingWindow
             panelKey="workspace"
