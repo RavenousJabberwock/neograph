@@ -104,7 +104,7 @@ export function WorkspaceSidebar() {
   };
 
   const save = () => {
-    const ws: Workspace = { name, data: { plots, viewport, visible, casMode, vintage } };
+    const ws: Workspace = { name, data: { plots, viewport, visible, casMode, vintage, wallpaper, theme } };
     const next = { ...workspaces, [name]: ws };
     setWorkspaces(next); saveAll(next);
   };
@@ -114,6 +114,8 @@ export function WorkspaceSidebar() {
     setViewport(ws.data.viewport);
     setCasMode(ws.data.casMode);
     setVintage(ws.data.vintage);
+    if (ws.data.wallpaper) setWallpaper(ws.data.wallpaper);
+    if (ws.data.theme) setTheme(ws.data.theme);
     (Object.keys(visible) as PanelKey[]).forEach((k) => {
       if (visible[k] !== ws.data.visible?.[k]) toggleVisible(k);
     });
@@ -128,6 +130,31 @@ export function WorkspaceSidebar() {
     setViewport(defaultViewport);
     setCasMode(false);
     setVintage(false);
+  };
+
+  const applyWpUrl = () => {
+    const u = wpUrl.trim();
+    if (!u) return;
+    setWallpaper({ kind: "image", url: u, label: "CUSTOM" });
+  };
+  const applyWpFile = (f: File | undefined) => {
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      const url = String(r.result || "");
+      if (url) setWallpaper({ kind: "image", url, label: f.name.slice(0, 14) });
+    };
+    r.readAsDataURL(f);
+  };
+
+  const setCustomVar = (k: string, v: string) => {
+    const next: Theme = {
+      ...theme,
+      name: "custom",
+      label: "CUSTOM",
+      vars: { ...theme.vars, [k]: v },
+    };
+    setTheme(next);
   };
 
   const panelList: { key: PanelKey; label: string; icon: React.ComponentType<{ size?: number }> }[] = [
