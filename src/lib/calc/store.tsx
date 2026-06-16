@@ -286,7 +286,7 @@ export function CalcProvider({ children }: { children: ReactNode }) {
     setPlots((prev) => [
       ...prev,
       {
-        id: `p${Date.now()}`,
+        id: freshId("p"),
         kind: "explicit",
         enabled: true,
         color: PLOT_COLORS[prev.length % PLOT_COLORS.length],
