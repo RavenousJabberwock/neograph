@@ -22,7 +22,7 @@ double-click — no server, no install.
 | **Linear algebra** | RREF, determinant, inverse, **eigenvalues / eigenvectors**, **SVD**, **LU / QR / Cholesky**, null & column space |
 | **Calculus numerics** | RK45 (Dormand-Prince) ODEs, adaptive Simpson quadrature, Newton + Brent root finders, numerical limits, Taylor series, polynomial roots (Aberth) |
 | **Statistics** | 10 distributions, hypothesis tests (t, ANOVA, χ²), linear / multivariate / logistic regression |
-| **Programming** | IDE with **Python (Pyodide)**, JS, LOGO turtle, BASIC/TI-BASIC, plus simulated C/C++/R/Mathematica. Scripts read/write the graph via the `graph` bridge |
+| **Programming** | IDE with **Python (Pyodide)**, JavaScript, **R (WebR · WASM)**, **Symbolic (mathjs CAS-flavor)**, LOGO turtle, BASIC / TI-BASIC. All runtimes are real (Pyodide & WebR lazy-load on first use). Scripts read/write the graph via the `graph` bridge |
 | **Terminal** | `/dev/neograph` shell with extensible command registry, history, `lambda.registerCommand()` from scripts |
 | **Academy** | 14 stages · **100+ lessons** from K-arithmetic through analysis, abstract algebra & numerical methods, with worked examples, exercises, and curated free reading / video links |
 | **Utility** | Tabbed **Notepad with live Markdown rendering** (find/replace, .md/.txt I/O, autosave), MS-Paint board, Internet Radio (SomaFM focus feeds) |
