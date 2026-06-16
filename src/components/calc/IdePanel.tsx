@@ -42,12 +42,14 @@ const EXT: Record<Lang, string> = {
 
 const SAMPLES: Record<Lang, string> = {
   python: `# Generate & push a curve into the Graph window
+# graph.* returns JsProxy values; call .to_py() to get native dict/list.
 import math
 graph.clear()
 graph.add("sin(x)")
 graph.add("sin(x)*cos(2*x)")
-print("plots:", list(graph.list()))
-print("viewport:", dict(graph.view()))
+plots = graph.list().to_py()
+print("plots:", [p["expr"] for p in plots])
+print("viewport:", graph.view().to_py())
 `,
   javascript: `// Push a few curves & zoom in
 graph.clear();
