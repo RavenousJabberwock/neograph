@@ -80,7 +80,7 @@ src/
 │  ├─ MatrixPanel.tsx           # ml-matrix decompositions
 │  ├─ StatsPanel.tsx            # jstat distributions & tests
 │  ├─ NumericsPanel.tsx         # ODE / ∫ / root finders / limits / Taylor
-│  ├─ IdePanel.tsx              # Pyodide + JS + LOGO + BASIC, with download progress
+│  ├─ IdePanel.tsx              # Pyodide + WebR + JS + Symbolic + LOGO + BASIC, lazy-load progress UI
 │  ├─ TerminalPanel.tsx         # /dev/neograph
 │  ├─ NotepadPanel.tsx          # Tabbed editor, .md preview, seed docs
 │  ├─ AcademyPanel.tsx          # Curriculum browser, exercises, resource links
