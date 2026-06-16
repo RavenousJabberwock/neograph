@@ -91,11 +91,13 @@ y <- x^2 + 2*x + 1
 print(y)
 cat(sqrt(2))
 `,
-  mathematica: `(* simple eval *)
+  mathematica: `(* Mathematica-flavor — heads map to mathjs functions, scope persists *)
 Sin[Pi/4]
-Integrate[x^2, x]   (* mathjs symbolic *)
+D[x^2 + 3 x, x]              (* symbolic derivative *)
+Integrate[x^2, x, 0, 1]      (* definite integral via Simpson-ish trapezoid *)
 a := 3
 a*a
+Simplify[(x^2 - 1)/(x - 1)]
 `,
 };
 
