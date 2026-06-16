@@ -197,6 +197,8 @@ export function CalcProvider({ children }: { children: ReactNode }) {
   const [vintage, setVintage] = useState(false);
   const [windows, setWindows] = useState<Record<PanelKey, WinRect>>(DEFAULT_WINDOWS);
   const [wallpaper, setWallpaper] = useState<Wallpaper>({ kind: "preset", name: "grid" });
+  const [theme, setThemeRaw] = useState<Theme>(THEMES.noir);
+  const setTheme = useCallback((t: Theme) => { setThemeRaw(t); applyTheme(t); }, []);
   const [graphParams, setGraphParams] = useState<GraphParams>({ a: 1, b: 1, c: 1, d: 1 });
   const setGraphParam = useCallback((k: keyof GraphParams, v: number) => {
     setGraphParams((prev) => ({ ...prev, [k]: v }));
